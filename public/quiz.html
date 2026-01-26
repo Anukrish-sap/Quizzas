@@ -4,24 +4,24 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Quizzas • Quiz</title>
-  <link rel="stylesheet" href="./assets/css/styles.css" />
+  <link rel="stylesheet" href="/assets/css/styles.css" />
 </head>
 <body>
   <header class="nav">
     <div class="brand">
-      <div class="logo" style="display:flex; align-items:center; justify-content:center;">
-        <img src="./assets/img/Quiz_logo.png" alt="Quizzas logo" height="34" style="border-radius:10px;" />
-      </div>
-      <div class="brandText">
-        <div class="brandName">Quizzas</div>
-        <div class="brandTag">Practice quizzes by topic</div>
-      </div>
+      <a class="brandLink" href="/index.html" aria-label="Quizzas home">
+        <img class="brandLogo" src="/assets/img/logo.png" alt="Quizzas logo" />
+        <div class="brandText">
+          <div class="brandName">Quizzas</div>
+          <div class="brandTag">Practice quizzes by topic</div>
+        </div>
+      </a>
     </div>
 
-    <nav class="navLinks" aria-label="Primary">
-      <a href="./index.html">Home</a>
-      <a class="active" href="./quiz.html">Quiz</a>
-      <a href="./about.html">About</a>
+    <nav class="navLinks" aria-label="Primary navigation">
+      <a href="/index.html">Home</a>
+      <a class="active" href="/quiz.html">Quiz</a>
+      <a href="/about.html">About</a>
     </nav>
   </header>
 
@@ -29,24 +29,24 @@
     <section class="section">
       <div class="sectionHead">
         <h2>Quiz</h2>
-        <p>Choose a topic and start practicing. Questions are loaded live from Supabase.</p>
+        <p>Select a topic and start practising.</p>
       </div>
 
-      <div class="heroActions" style="margin-top:12px;">
-        <label style="display:flex; flex-direction:column; gap:6px; min-width:240px;">
-          <span style="color:var(--muted); font-weight:900; font-size:12px;">Topic</span>
+      <div class="controls">
+        <label class="control">
+          <span>Topic</span>
           <select id="topicSelect">
             <option value="ALL">All topics</option>
           </select>
         </label>
 
-        <label style="display:flex; flex-direction:column; gap:6px; min-width:240px;">
-          <span style="color:var(--muted); font-weight:900; font-size:12px;">Search</span>
+        <label class="control">
+          <span>Search</span>
           <input id="searchBox" type="text" placeholder="Search questions..." />
         </label>
 
-        <label style="display:flex; flex-direction:column; gap:6px; width:140px;">
-          <span style="color:var(--muted); font-weight:900; font-size:12px;">Limit</span>
+        <label class="control small">
+          <span>Limit</span>
           <input id="limitBox" type="number" min="5" max="200" step="5" value="25" />
         </label>
 
@@ -54,44 +54,36 @@
       </div>
     </section>
 
-    <section class="section" style="margin-top:14px;">
-      <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center;">
+    <section class="section">
+      <div class="quizTop">
         <div class="muted" id="progressText">Loading…</div>
-        <div class="muted">Score: <strong id="scoreText" style="color:var(--accent);">0</strong></div>
+        <div class="muted">Score: <strong id="scoreText" class="score">0</strong></div>
       </div>
 
-      <div style="margin-top:14px; border:1px solid var(--border); border-radius:18px; background:rgba(8,19,12,0.95); padding:16px;">
-        <div class="muted" style="font-weight:900; font-size:12px;">Topic</div>
-        <div id="topicTag" style="margin-top:6px; color:var(--accent); font-weight:900;">—</div>
+      <div class="quizCard">
+        <div class="muted label">Topic</div>
+        <div id="topicTag" class="topicTag">—</div>
 
-        <div id="questionText" style="margin-top:12px; font-size: clamp(18px,2.2vw,26px); font-weight:900;">
-          Loading…
-        </div>
+        <div id="questionText" class="questionText">Loading…</div>
 
-        <div id="optionsWrap" class="grid" style="margin-top:14px;"></div>
+        <div id="optionsWrap" class="grid optionsGrid"></div>
 
-        <div id="feedbackBox" class="muted" style="margin-top:12px; line-height:1.4;"></div>
+        <div id="feedbackBox" class="muted feedback"></div>
 
-        <div class="heroActions" style="margin-top:14px; justify-content:flex-end;">
+        <div class="heroActions end">
           <button id="skipBtn" class="btn secondary" type="button">Skip</button>
           <button id="nextBtn" class="btn" type="button" disabled>Next</button>
         </div>
       </div>
 
-      <div id="doneBox" style="display:none; margin-top:14px;" class="topicCard">
-        <h3 style="margin:0;">Finished</h3>
-        <p id="finalLine" class="muted" style="margin:8px 0 0;"></p>
-        <div class="topicActions" style="margin-top:12px;">
-          <button id="restartBtn" class="btn" type="button">Restart</button>
-        </div>
+      <div id="doneBox" class="topicCard doneBox" style="display:none;">
+        <h3>Finished</h3>
+        <p id="finalLine" class="muted"></p>
+        <button id="restartBtn" class="btn" type="button">Restart</button>
       </div>
-
-      <p class="muted" style="margin-top:12px;">
-        Keyboard: A/B/C/D to answer • N for next • S to skip
-      </p>
     </section>
   </main>
 
-  <script src="./js/quiz.js"></script>
+  <script src="/js/quiz.js"></script>
 </body>
 </html>
