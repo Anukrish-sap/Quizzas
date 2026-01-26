@@ -9,16 +9,16 @@
 <body>
   <header class="nav">
     <div class="brand">
-      <div class="logo">
-        <img src="/assets/img/Quiz_logo.png" alt="Quizzas logo">
-      </div>
-      <div class="brandText">
-        <div class="brandName">Quizzas</div>
-        <div class="brandTag">A modular quiz platform</div>
-      </div>
+      <a class="brandLink" href="/index.html" aria-label="Quizzas home">
+        <img class="brandLogo" src="/assets/img/logo.png" alt="Quizzas logo" />
+        <div class="brandText">
+          <div class="brandName">Quizzas</div>
+          <div class="brandTag">A modular quiz platform</div>
+        </div>
+      </a>
     </div>
 
-    <nav class="navLinks">
+    <nav class="navLinks" aria-label="Primary navigation">
       <a class="active" href="/index.html">Home</a>
       <a href="/quiz.html">Quiz</a>
       <a href="/about.html">About</a>
@@ -43,11 +43,15 @@
       <div class="heroRight">
         <div class="statCard">
           <div class="statLabel">Topics</div>
-          <div class="statValue" id="topicCount">—</div>
+          <div class="statValue" id="topicCount">0</div>
+        </div>
+        <div class="statCard">
+          <div class="statLabel">Questions</div>
+          <div class="statValue" id="questionCount">0</div>
         </div>
         <div class="statCard">
           <div class="statLabel">Status</div>
-          <div class="statValue" id="statusText">Ready</div>
+          <div class="statValue" id="statusText">Loading…</div>
         </div>
       </div>
     </section>
@@ -58,7 +62,7 @@
         <p>Select a topic to begin practising.</p>
       </div>
 
-      <div id="topicsGrid" class="grid"></div>
+      <div id="topicsGrid" class="grid" aria-live="polite"></div>
     </section>
 
     <footer class="footer">
