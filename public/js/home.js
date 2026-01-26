@@ -1,7 +1,6 @@
 // public/js/home.js
 
-const SUPABASE_URL = "https://ywqkgttthlpytpwaxwpr.supabase.co";
-const SUPABASE_KEY = "sb_publishable_nrvv6YM3tKg0NZL1Bkvk0w_tlVWRoEA";
+const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.QUIZZAS_CONFIG;
 
 const topicsGrid = document.getElementById("topicsGrid");
 const topicCount = document.getElementById("topicCount");
@@ -23,9 +22,9 @@ function esc(s) {
 async function restGet(pathAndQuery) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${pathAndQuery}`, {
     headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`
-    }
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    },
   });
 
   if (!res.ok) {
@@ -49,10 +48,8 @@ function renderError(msg) {
     <div class="card cardWide">
       <h3>Could not load topics</h3>
       <p class="muted">${esc(msg)}</p>
-      <button id="retryBtn" class="btn" type="button">Try again</button>
     </div>
   `;
-  document.getElementById("retryBtn")?.addEventListener("click", loadHome);
 }
 
 function renderEmpty() {
