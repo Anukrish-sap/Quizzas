@@ -30,7 +30,7 @@ let idx = 0;
 let score = 0;
 let locked = false;
 
-function escapeHtml(s) {
+function esc(s) {
   return String(s)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -40,8 +40,7 @@ function escapeHtml(s) {
 }
 
 function getQueryParam(name) {
-  const u = new URL(window.location.href);
-  return u.searchParams.get(name);
+  return new URL(window.location.href).searchParams.get(name);
 }
 
 async function restGet(pathAndQuery) {
@@ -58,12 +57,12 @@ async function restGet(pathAndQuery) {
   return res.json();
 }
 
-function setUIEmpty(message) {
+function setEmpty(message) {
   progressText.textContent = "Question 0/0";
   topicTag.textContent = "—";
   questionText.textContent = message;
   optionsWrap.innerHTML = "";
-  feedbackBox.textContent = "Add questions/options in Supabase, then press Reload.";
+  feedbackBox.textContent = "";
   nextBtn.disabled = true;
 }
 
@@ -72,9 +71,8 @@ async function loadTopics() {
 
   topicSelect.innerHTML =
     `<option value="ALL">All topics</option>` +
-    topics.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join("");
+    topics.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join("");
 
-  // If you came from Home: quiz.html?topic=Databases
   const topicName = getQueryParam("topic");
   if (topicName) {
     const match = topics.find(t => String(t.name).toLowerCase() === String(topicName).toLowerCase());
@@ -83,32 +81,29 @@ async function loadTopics() {
 }
 
 async function loadQuestions() {
-  progressText.textContent = "Loading…";
-  questionText.textContent = "Loading questions…";
-  optionsWrap.innerHTML = "";
-  feedbackBox.textContent = "";
   doneBox.style.display = "none";
+  feedbackBox.textContent = "";
+  optionsWrap.innerHTML = "";
+  questionText.textContent = "Loading questions…";
+  progressText.textContent = "Loading…";
 
   const topicId = topicSelect.value;
   const search = (searchBox.value || "").trim().toLowerCase();
   const limit = Math.max(5, Math.min(200, parseInt(limitBox.value || "25", 10)));
 
-  // Fetch questions
   let qQuery = "questions?select=id,topic_id,question_text,explanation&order=created_at.desc";
   if (topicId !== "ALL") qQuery += `&topic_id=eq.${encodeURIComponent(topicId)}`;
-  const qRows = await restGet(qQuery);
 
+  const qRows = await restGet(qQuery);
   if (!qRows.length) {
     questions = [];
-    setUIEmpty("No questions found for this selection.");
+    setEmpty("No questions found. Add questions in Supabase.");
     return;
   }
 
-  // Topic map
   const tRows = await restGet("topics?select=id,name");
   const topicMap = new Map(tRows.map(t => [String(t.id), t.name]));
 
-  // Fetch options for all questions in one call
   const ids = qRows.map(r => r.id).join(",");
   const oRows = await restGet(
     `options?select=question_id,option_text,is_correct,option_order&question_id=in.(${ids})&order=question_id.asc,option_order.asc`
@@ -136,7 +131,6 @@ async function loadQuestions() {
     };
   });
 
-  // Search filter
   if (search) {
     built = built.filter(q =>
       q.q.toLowerCase().includes(search) ||
@@ -153,7 +147,7 @@ async function loadQuestions() {
   scoreText.textContent = "0";
 
   if (!questions.length) {
-    setUIEmpty("No questions match your search/filter.");
+    setEmpty("No questions match your filter.");
     return;
   }
 
@@ -173,9 +167,9 @@ function render() {
   const labels = ["A", "B", "C", "D"];
 
   optionsWrap.innerHTML = q.options.map((opt, i) => `
-    <div class="topicCard" data-i="${i}" style="cursor:pointer;">
-      <h3 style="margin:0; color:var(--accent);">${labels[i] || "?"}</h3>
-      <p class="muted" style="margin:8px 0 0;">${escapeHtml(opt)}</p>
+    <div class="topicCard optionCard" data-i="${i}">
+      <div class="optionLabel">${labels[i] || "?"}</div>
+      <div class="muted">${esc(opt)}</div>
     </div>
   `).join("");
 
@@ -191,19 +185,14 @@ function choose(choiceIndex, cardEl) {
   const q = questions[idx];
   const correct = choiceIndex === q.correctIndex;
 
-  // highlight correct option
   const cards = [...optionsWrap.querySelectorAll("[data-i]")];
   cards.forEach((c) => {
     const i = parseInt(c.getAttribute("data-i"), 10);
-    if (i === q.correctIndex) {
-      c.style.borderColor = "var(--accent)";
-      c.style.boxShadow = "0 0 0 3px rgba(124,255,78,0.18)";
-    }
+    if (i === q.correctIndex) c.classList.add("correct");
   });
 
   if (!correct) {
-    cardEl.style.borderColor = "#ff4e4e";
-    cardEl.style.boxShadow = "0 0 0 3px rgba(255,78,78,0.18)";
+    cardEl.classList.add("wrong");
     feedbackBox.textContent = `Incorrect. Correct: ${q.options[q.correctIndex]}. ${q.explain}`;
   } else {
     score += 1;
@@ -257,24 +246,13 @@ searchBox.addEventListener("keydown", (e) => {
   if (e.key === "Enter") loadQuestions();
 });
 
-// Keyboard shortcuts
-document.addEventListener("keydown", (e) => {
-  const k = e.key.toLowerCase();
-  if (k === "a") optionsWrap.querySelector('[data-i="0"]')?.click();
-  if (k === "b") optionsWrap.querySelector('[data-i="1"]')?.click();
-  if (k === "c") optionsWrap.querySelector('[data-i="2"]')?.click();
-  if (k === "d") optionsWrap.querySelector('[data-i="3"]')?.click();
-  if (k === "n" && !nextBtn.disabled) next();
-  if (k === "s") skip();
-});
-
 // Init
 (async function init() {
   try {
     await loadTopics();
     await loadQuestions();
   } catch (e) {
-    setUIEmpty("Failed to load from Supabase.");
+    setEmpty("Failed to load quiz.");
     feedbackBox.textContent = e?.message || String(e);
   }
 })();
