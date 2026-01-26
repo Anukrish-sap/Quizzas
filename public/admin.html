@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quizzas • Admin</title>
+  <link rel="stylesheet" href="/public/assets/css/styles.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="brand">
+    <a class="brandLink" href="/public/index.html" aria-label="Quizzas home">
+      <img class="brandLogo" src="/public/assets/img/logo.png" alt="Quizzas logo">
+      <div class="brandText">
+        <div class="brandName">Quizzas</div>
+        <div class="brandTag">Admin • Add topics and questions</div>
+      </div>
+    </a>
+  </div>
+
+  <nav class="navLinks" aria-label="Primary navigation">
+    <a href="/public/index.html">Home</a>
+    <a href="/public/quiz.html">Quiz</a>
+    <a href="/public/about.html">About</a>
+    <a class="active" href="/public/admin.html">Admin</a>
+  </nav>
+</header>
+
+<main class="container">
+
+  <section class="hero">
+    <div class="heroInner">
+      <div class="heroLeft">
+        <h1>Admin Console</h1>
+        <p>
+          Sign in using Supabase Auth. Admin accounts can create topics and upload questions directly into the database.
+        </p>
+        <div class="actions">
+          <button id="signOutBtn" class="btn secondary" type="button">Sign out</button>
+        </div>
+        <p class="muted" id="globalMsg" style="margin-top:12px;"></p>
+      </div>
+
+      <div class="heroRight">
+        <div class="statCard">
+          <div class="statLabel">Session</div>
+          <div class="statValue" id="sessionText">—</div>
+        </div>
+        <div class="statCard">
+          <div class="statLabel">Role</div>
+          <div class="statValue" id="roleText">—</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUTH -->
+  <section class="section" id="authSection">
+    <div class="sectionHead">
+      <h2>Sign in</h2>
+      <p>Use email + password. Only accounts marked as admin can insert records.</p>
+    </div>
+
+    <div class="card cardWide">
+      <div class="controls">
+        <label class="control">
+          <span>Email</span>
+          <input id="email" type="email" placeholder="you@example.com">
+        </label>
+
+        <label class="control">
+          <span>Password</span>
+          <input id="password" type="password" placeholder="••••••••">
+        </label>
+
+        <button class="btn" id="signInBtn" type="button">Sign in</button>
+        <button class="btn secondary" id="signUpBtn" type="button">Sign up</button>
+      </div>
+
+      <p class="muted" id="authMsg" style="margin-top:12px;"></p>
+    </div>
+  </section>
+
+  <!-- ADMIN PANEL -->
+  <section class="section" id="adminSection" style="display:none;">
+    <div class="sectionHead">
+      <h2>Uploader</h2>
+      <p>Create topics and add questions (4 options, A–D). Option order is stored as 0–3.</p>
+    </div>
+
+    <div class="grid">
+      <!-- Create topic -->
+      <div class="card" style="grid-column: span 6;">
+        <h3>Create Topic</h3>
+        <p class="muted">Adds a new topic (unique name).</p>
+
+        <div class="controls">
+          <label class="control" style="min-width:100%;">
+            <span>Topic name</span>
+            <input id="newTopicName" type="text" placeholder="e.g., Computer Networks">
+          </label>
+
+          <button class="btn" id="createTopicBtn" type="button">Create topic</button>
+        </div>
+
+        <p class="muted" id="topicMsg" style="margin-top:12px;"></p>
+      </div>
+
+      <!-- Add question -->
+      <div class="card" style="grid-column: span 6;">
+        <h3>Add Question</h3>
+        <p class="muted">Creates one question + its four options.</p>
+
+        <div class="controls">
+          <label class="control" style="min-width:100%;">
+            <span>Topic</span>
+            <select id="topicSelect"></select>
+          </label>
+
+          <label class="control" style="min-width:100%;">
+            <span>Question text</span>
+            <input id="questionText" type="text" placeholder="Enter the question">
+          </label>
+
+          <label class="control" style="min-width:100%;">
+            <span>Explanation (optional)</span>
+            <input id="explanationText" type="text" placeholder="Shown after answering">
+          </label>
+
+          <label class="control" style="min-width:100%;">
+            <span>Option A</span>
+            <input id="optA" type="text" placeholder="Option A">
+          </label>
+
+          <label class="control" style="min-width:100%;">
+            <span>Option B</span>
+            <input id="optB" type="text" placeholder="Option B">
+          </label>
+
+          <label class="control" style="min-width:100%;">
+            <span>Option C</span>
+            <input id="optC" type="text" placeholder="Option C">
+          </label>
+
+          <label class="control" style="min-width:100%;">
+            <span>Option D</span>
+            <input id="optD" type="text" placeholder="Option D">
+          </label>
+
+          <label class="control small">
+            <span>Correct</span>
+            <select id="correctSelect">
+              <option value="0">A</option>
+              <option value="1">B</option>
+              <option value="2">C</option>
+              <option value="3">D</option>
+            </select>
+          </label>
+
+          <button class="btn" id="addQuestionBtn" type="button">Add question</button>
+        </div>
+
+        <p class="muted" id="questionMsg" style="margin-top:12px;"></p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div>© <span id="yearAdmin"></span> Quizzas</div>
+    <div class="muted">Admin actions are protected by Supabase RLS</div>
+  </footer>
+
+</main>
+
+<script src="/public/js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/public/js/admin.js"></script>
+</body>
+</html>
