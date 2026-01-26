@@ -23,6 +23,7 @@
     <a href="/public/index.html">Home</a>
     <a href="/public/quiz.html">Quiz</a>
     <a class="active" href="/public/about.html">About</a>
+    <a href="/public/admin.html">Admin</a>
   </nav>
 </header>
 
@@ -31,36 +32,36 @@
   <section class="hero">
     <h1>About Quizzas</h1>
     <p>
-      Quizzas is a modular quiz platform designed for practice and revision. Topics and questions are stored
-      in Supabase, allowing you to scale the platform by adding new subjects without changing the UI.
+      Quizzas is a modular quiz platform. Topics and questions are stored in Supabase so you can expand the
+      system to any subject later without changing your site structure.
     </p>
   </section>
 
   <section class="section">
     <div class="sectionHead">
       <h2>Tech</h2>
-      <p>Frontend: HTML/CSS/JavaScript · Backend: Supabase (Postgres + REST)</p>
+      <p>HTML/CSS/JavaScript • Supabase (Postgres + REST + Auth) • RLS protected admin writes</p>
     </div>
 
     <div class="grid">
       <div class="card">
-        <h3>Why this project</h3>
-        <p class="muted">Built as a portfolio-ready app with clean structure and scalable data model.</p>
+        <h3>Modular topics</h3>
+        <p class="muted">Add topics in the database and they instantly show on the homepage.</p>
       </div>
       <div class="card">
-        <h3>Scalability</h3>
-        <p class="muted">Add new topics and question banks in the database—no code changes required.</p>
+        <h3>Quiz engine</h3>
+        <p class="muted">Loads questions and options dynamically and tracks score.</p>
       </div>
       <div class="card">
-        <h3>Next upgrades</h3>
-        <p class="muted">Authentication, admin upload, timers, leaderboards, and analytics.</p>
+        <h3>Admin uploader</h3>
+        <p class="muted">Admins can add questions directly from the website.</p>
       </div>
     </div>
   </section>
 
   <footer class="footer">
     <div>© <span id="year3"></span> Quizzas</div>
-    <div class="muted">Built for GitHub and future extension</div>
+    <div class="muted">Built for GitHub and future scaling</div>
   </footer>
 
 </main>
