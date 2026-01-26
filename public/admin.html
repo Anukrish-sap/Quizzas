@@ -11,7 +11,8 @@
 <header class="nav">
   <div class="brand">
     <a class="brandLink" href="/public/index.html" aria-label="Quizzas home">
-      <img class="brandLogo" src="/public/assets/img/logo.png" alt="Quizzas logo">
+      <!-- Use whichever logo file you actually have -->
+      <img class="brandLogo" src="/public/assets/img/Quiz_logo.png" alt="Quizzas logo">
       <div class="brandText">
         <div class="brandName">Quizzas</div>
         <div class="brandTag">Admin • Add topics and questions</div>
@@ -34,11 +35,14 @@
       <div class="heroLeft">
         <h1>Admin Console</h1>
         <p>
-          Sign in using Supabase Auth. Admin accounts can create topics and upload questions directly into the database.
+          Sign in using Supabase Auth. Existing users should use <strong>Sign in</strong>.
+          New users should use <strong>Sign up</strong>.
         </p>
+
         <div class="actions">
           <button id="signOutBtn" class="btn secondary" type="button">Sign out</button>
         </div>
+
         <p class="muted" id="globalMsg" style="margin-top:12px;"></p>
       </div>
 
@@ -58,20 +62,20 @@
   <!-- AUTH -->
   <section class="section" id="authSection">
     <div class="sectionHead">
-      <h2>Sign in</h2>
-      <p>Use email + password. Only accounts marked as admin can insert records.</p>
+      <h2>Sign in / Sign up</h2>
+      <p>Only accounts marked as admin can insert records.</p>
     </div>
 
     <div class="card cardWide">
       <div class="controls">
         <label class="control">
           <span>Email</span>
-          <input id="email" type="email" placeholder="you@example.com">
+          <input id="email" type="email" placeholder="you@example.com" autocomplete="email">
         </label>
 
         <label class="control">
           <span>Password</span>
-          <input id="password" type="password" placeholder="••••••••">
+          <input id="password" type="password" placeholder="••••••••" autocomplete="current-password">
         </label>
 
         <button class="btn" id="signInBtn" type="button">Sign in</button>
@@ -86,7 +90,7 @@
   <section class="section" id="adminSection" style="display:none;">
     <div class="sectionHead">
       <h2>Uploader</h2>
-      <p>Create topics and add questions (4 options, A–D). Option order is stored as 0–3.</p>
+      <p>Create topics and add questions (A–D). Writes are protected by RLS.</p>
     </div>
 
     <div class="grid">
@@ -110,7 +114,7 @@
       <!-- Add question -->
       <div class="card" style="grid-column: span 6;">
         <h3>Add Question</h3>
-        <p class="muted">Creates one question + its four options.</p>
+        <p class="muted">Creates one question + four options.</p>
 
         <div class="controls">
           <label class="control" style="min-width:100%;">
@@ -173,6 +177,7 @@
 
 </main>
 
+<!-- IMPORTANT: order matters -->
 <script src="/public/js/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/public/js/admin.js"></script>
