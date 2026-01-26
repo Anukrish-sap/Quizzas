@@ -1,7 +1,6 @@
 // public/js/quiz.js
 
-const SUPABASE_URL = "https://ywqkgttthlpytpwaxwpr.supabase.co";
-const SUPABASE_KEY = "sb_publishable_nrvv6YM3tKg0NZL1Bkvk0w_tlVWRoEA";
+const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.QUIZZAS_CONFIG;
 
 // Footer year
 document.getElementById("year2").textContent = new Date().getFullYear();
@@ -49,11 +48,10 @@ function getQueryParam(name) {
 async function restGet(pathAndQuery) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${pathAndQuery}`, {
     headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`
-    }
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    },
   });
-
   if (!res.ok) {
     const t = await res.text();
     throw new Error(`REST ${res.status}: ${t}`);
@@ -102,7 +100,7 @@ async function loadQuestions() {
   const qRows = await restGet(qQuery);
   if (!qRows.length) {
     questions = [];
-    setEmpty("No questions found. Add questions in Supabase.");
+    setEmpty("No questions found. Add questions in Supabase or via Admin.");
     return;
   }
 
@@ -132,7 +130,7 @@ async function loadQuestions() {
       q: r.question_text,
       explain: r.explanation || "",
       options,
-      correctIndex
+      correctIndex,
     };
   });
 
@@ -188,6 +186,14 @@ function choose(choiceIndex, cardEl) {
   locked = true;
 
   const q = questions[idx];
+
+  // Safety: if no correct option exists, prevent crash
+  if (q.correctIndex < 0) {
+    feedbackBox.textContent = "This question has no correct answer set in the database.";
+    nextBtn.disabled = false;
+    return;
+  }
+
   const correct = choiceIndex === q.correctIndex;
 
   const cards = [...optionsWrap.querySelectorAll("[data-i]")];
