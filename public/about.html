@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quizzas • About</title>
+  <link rel="stylesheet" href="/public/assets/css/styles.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="brand">
+    <a class="brandLink" href="/public/index.html" aria-label="Quizzas home">
+      <img class="brandLogo" src="/public/assets/img/logo.png" alt="Quizzas logo">
+      <div class="brandText">
+        <div class="brandName">Quizzas</div>
+        <div class="brandTag">About this project</div>
+      </div>
+    </a>
+  </div>
+
+  <nav class="navLinks" aria-label="Primary navigation">
+    <a href="/public/index.html">Home</a>
+    <a href="/public/quiz.html">Quiz</a>
+    <a class="active" href="/public/about.html">About</a>
+  </nav>
+</header>
+
+<main class="container">
+
+  <section class="hero">
+    <h1>About Quizzas</h1>
+    <p>
+      Quizzas is a modular quiz platform designed for practice and revision. Topics and questions are stored
+      in Supabase, allowing you to scale the platform by adding new subjects without changing the UI.
+    </p>
+  </section>
+
+  <section class="section">
+    <div class="sectionHead">
+      <h2>Tech</h2>
+      <p>Frontend: HTML/CSS/JavaScript · Backend: Supabase (Postgres + REST)</p>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Why this project</h3>
+        <p class="muted">Built as a portfolio-ready app with clean structure and scalable data model.</p>
+      </div>
+      <div class="card">
+        <h3>Scalability</h3>
+        <p class="muted">Add new topics and question banks in the database—no code changes required.</p>
+      </div>
+      <div class="card">
+        <h3>Next upgrades</h3>
+        <p class="muted">Authentication, admin upload, timers, leaderboards, and analytics.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div>© <span id="year3"></span> Quizzas</div>
+    <div class="muted">Built for GitHub and future extension</div>
+  </footer>
+
+</main>
+
+<script>
+  document.getElementById("year3").textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
