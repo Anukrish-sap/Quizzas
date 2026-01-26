@@ -4,12 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Quizzas</title>
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./assets/css/styles.css" />
 </head>
 <body>
   <header class="nav">
     <div class="brand">
-      <div class="logo">Q</div>
+      <div class="logo" style="display:flex; align-items:center; justify-content:center;">
+        <img src="./assets/img/Quiz_logo.png" alt="Quizzas logo" height="34" style="border-radius:10px;" />
+      </div>
       <div class="brandText">
         <div class="brandName">Quizzas</div>
         <div class="brandTag">A modular quiz platform</div>
@@ -28,8 +30,8 @@
       <div class="heroLeft">
         <h1>Practice smarter, topic by topic.</h1>
         <p>
-          Quizzas is a scalable quiz platform. Start with one question bank today and expand later to any module.
-          Topics and questions are stored in Supabase.
+          Quizzas is a scalable quiz platform. Topics and questions are stored in Supabase.
+          Start with one bank today and expand later to any module.
         </p>
 
         <div class="heroActions">
@@ -38,7 +40,7 @@
         </div>
 
         <div class="hint">
-          If topics don’t load, check your Supabase URL/anon key in <code>home.js</code> and confirm your RLS “SELECT” policies.
+          If topics don’t load, confirm RLS SELECT policies exist on <code>topics</code>, <code>questions</code>, <code>options</code>.
         </div>
       </div>
 
@@ -57,12 +59,10 @@
     <section class="section">
       <div class="sectionHead">
         <h2>Topics</h2>
-        <p>Pick a topic to start practicing. More modules can be added later without changing the site structure.</p>
+        <p>Pick a topic to start practicing. You can add more topics later without changing the site structure.</p>
       </div>
 
-      <div id="topicsGrid" class="grid" aria-live="polite">
-        <!-- Filled by JS -->
-      </div>
+      <div id="topicsGrid" class="grid" aria-live="polite"></div>
     </section>
 
     <footer class="footer">
@@ -71,6 +71,6 @@
     </footer>
   </main>
 
-  <script src="./home.js"></script>
+  <script src="./js/home.js"></script>
 </body>
 </html>
