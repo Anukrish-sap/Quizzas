@@ -1,185 +1,165 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Quizzas • Admin</title>
-  <link rel="stylesheet" href="/public/assets/css/styles.css">
-</head>
-<body>
+  <meta charset="utf-8" />
+  <title>Quizzas · Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<header class="nav">
-  <div class="brand">
-    <a class="brandLink" href="/public/index.html" aria-label="Quizzas home">
-      <!-- Use whichever logo file you actually have -->
-      <img class="brandLogo" src="/public/assets/img/Quiz_logo.png" alt="Quizzas logo">
+  <link rel="stylesheet" href="/public/assets/css/styles.css" />
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/public/js/config.js"></script>
+</head>
+
+<body>
+  <header class="nav">
+    <div class="brand">
+      <!-- ✅ LOGO FIXED HERE -->
+      <img class="brandLogo" src="/public/assets/img/logo.png" alt="Quizzas logo">
+
       <div class="brandText">
         <div class="brandName">Quizzas</div>
-        <div class="brandTag">Admin • Add topics and questions</div>
+        <div class="brandTag">Admin · Manage topics & questions</div>
       </div>
-    </a>
-  </div>
+    </div>
 
-  <nav class="navLinks" aria-label="Primary navigation">
-    <a href="/public/index.html">Home</a>
-    <a href="/public/quiz.html">Quiz</a>
-    <a href="/public/about.html">About</a>
-    <a class="active" href="/public/admin.html">Admin</a>
-  </nav>
-</header>
+    <nav class="navLinks" aria-label="Primary">
+      <a href="/public/index.html">Home</a>
+      <a href="/public/quiz.html">Quiz</a>
+      <a href="/public/about.html">About</a>
+      <a class="active" href="/public/admin.html">Admin</a>
+    </nav>
+  </header>
 
-<main class="container">
+  <main class="container">
 
-  <section class="hero">
-    <div class="heroInner">
-      <div class="heroLeft">
-        <h1>Admin Console</h1>
-        <p>
-          Sign in using Supabase Auth. Existing users should use <strong>Sign in</strong>.
-          New users should use <strong>Sign up</strong>.
-        </p>
+    <!-- STATUS -->
+    <section class="card">
+      <p class="muted">
+        Log in if you already have an account. New users can sign up below.
+      </p>
 
-        <div class="actions">
-          <button id="signOutBtn" class="btn secondary" type="button">Sign out</button>
-        </div>
-
-        <p class="muted" id="globalMsg" style="margin-top:12px;"></p>
-      </div>
-
-      <div class="heroRight">
-        <div class="statCard">
+      <div class="stats">
+        <div class="stat">
           <div class="statLabel">Session</div>
           <div class="statValue" id="sessionText">—</div>
         </div>
-        <div class="statCard">
+        <div class="stat">
           <div class="statLabel">Role</div>
           <div class="statValue" id="roleText">—</div>
         </div>
       </div>
-    </div>
-  </section>
 
-  <!-- AUTH -->
-  <section class="section" id="authSection">
-    <div class="sectionHead">
-      <h2>Sign in / Sign up</h2>
-      <p>Only accounts marked as admin can insert records.</p>
-    </div>
+      <p id="globalMsg" class="msg"></p>
+    </section>
 
-    <div class="card cardWide">
-      <div class="controls">
-        <label class="control">
-          <span>Email</span>
-          <input id="email" type="email" placeholder="you@example.com" autocomplete="email">
-        </label>
+    <!-- AUTH -->
+    <section id="authSection" class="card">
+      <h2>Log in / Sign up</h2>
 
-        <label class="control">
-          <span>Password</span>
-          <input id="password" type="password" placeholder="••••••••" autocomplete="current-password">
-        </label>
-
-        <button class="btn" id="signInBtn" type="button">Sign in</button>
-        <button class="btn secondary" id="signUpBtn" type="button">Sign up</button>
-      </div>
-
-      <p class="muted" id="authMsg" style="margin-top:12px;"></p>
-    </div>
-  </section>
-
-  <!-- ADMIN PANEL -->
-  <section class="section" id="adminSection" style="display:none;">
-    <div class="sectionHead">
-      <h2>Uploader</h2>
-      <p>Create topics and add questions (A–D). Writes are protected by RLS.</p>
-    </div>
-
-    <div class="grid">
-      <!-- Create topic -->
-      <div class="card" style="grid-column: span 6;">
-        <h3>Create Topic</h3>
-        <p class="muted">Adds a new topic (unique name).</p>
-
-        <div class="controls">
-          <label class="control" style="min-width:100%;">
-            <span>Topic name</span>
-            <input id="newTopicName" type="text" placeholder="e.g., Computer Networks">
-          </label>
-
-          <button class="btn" id="createTopicBtn" type="button">Create topic</button>
+      <div class="formGrid">
+        <div>
+          <label for="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+          />
         </div>
 
-        <p class="muted" id="topicMsg" style="margin-top:12px;"></p>
+        <div>
+          <label for="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+          />
+        </div>
       </div>
 
-      <!-- Add question -->
-      <div class="card" style="grid-column: span 6;">
-        <h3>Add Question</h3>
-        <p class="muted">Creates one question + four options.</p>
+      <div class="actions">
+        <button id="loginBtn" class="btn" type="button">Log in</button>
+        <button id="signupBtn" class="btn secondary" type="button">Sign up</button>
+        <!-- Hidden by default; JS shows only when logged in -->
+        <button
+          id="logoutBtn"
+          class="btn ghost"
+          type="button"
+          style="display:none;"
+        >
+          Log out
+        </button>
+      </div>
 
-        <div class="controls">
-          <label class="control" style="min-width:100%;">
-            <span>Topic</span>
-            <select id="topicSelect"></select>
-          </label>
+      <p id="authMsg" class="msg"></p>
+    </section>
 
-          <label class="control" style="min-width:100%;">
-            <span>Question text</span>
-            <input id="questionText" type="text" placeholder="Enter the question">
-          </label>
+    <!-- ADMIN ACTIONS -->
+    <section id="adminSection" class="card" style="display:none;">
+      <h2>Admin Actions</h2>
 
-          <label class="control" style="min-width:100%;">
-            <span>Explanation (optional)</span>
-            <input id="explanationText" type="text" placeholder="Shown after answering">
-          </label>
+      <!-- CREATE TOPIC -->
+      <div class="adminBlock">
+        <h3>Create topic</h3>
+        <div class="row">
+          <input id="newTopicName" placeholder="Topic name" />
+          <button id="createTopicBtn" class="btn" type="button">
+            Create topic
+          </button>
+        </div>
+        <p id="topicMsg" class="msg"></p>
+      </div>
 
-          <label class="control" style="min-width:100%;">
-            <span>Option A</span>
-            <input id="optA" type="text" placeholder="Option A">
-          </label>
+      <!-- ADD QUESTION -->
+      <div class="adminBlock">
+        <h3>Add question</h3>
 
-          <label class="control" style="min-width:100%;">
-            <span>Option B</span>
-            <input id="optB" type="text" placeholder="Option B">
-          </label>
-
-          <label class="control" style="min-width:100%;">
-            <span>Option C</span>
-            <input id="optC" type="text" placeholder="Option C">
-          </label>
-
-          <label class="control" style="min-width:100%;">
-            <span>Option D</span>
-            <input id="optD" type="text" placeholder="Option D">
-          </label>
-
-          <label class="control small">
-            <span>Correct</span>
-            <select id="correctSelect">
-              <option value="0">A</option>
-              <option value="1">B</option>
-              <option value="2">C</option>
-              <option value="3">D</option>
-            </select>
-          </label>
-
-          <button class="btn" id="addQuestionBtn" type="button">Add question</button>
+        <div class="row">
+          <select id="topicSelect"></select>
+          <input id="questionText" placeholder="Question text" />
+          <input
+            id="explanationText"
+            placeholder="Explanation (optional)"
+          />
         </div>
 
-        <p class="muted" id="questionMsg" style="margin-top:12px;"></p>
+        <div class="row">
+          <input id="optA" placeholder="Option A" />
+          <input id="optB" placeholder="Option B" />
+          <input id="optC" placeholder="Option C" />
+          <input id="optD" placeholder="Option D" />
+        </div>
+
+        <div class="row">
+          <label for="correctSelect" class="inlineLabel">
+            Correct option
+          </label>
+
+          <select id="correctSelect">
+            <option value="0">A</option>
+            <option value="1">B</option>
+            <option value="2">C</option>
+            <option value="3">D</option>
+          </select>
+
+          <button id="addQuestionBtn" class="btn" type="button">
+            Add question
+          </button>
+        </div>
+
+        <p id="questionMsg" class="msg"></p>
       </div>
-    </div>
-  </section>
+    </section>
+
+  </main>
 
   <footer class="footer">
-    <div>© <span id="yearAdmin"></span> Quizzas</div>
-    <div class="muted">Admin actions are protected by Supabase RLS</div>
+    © <span id="yearAdmin"></span> Quizzas · Admin access protected by Supabase
   </footer>
 
-</main>
-
-<!-- IMPORTANT: order matters -->
-<script src="/public/js/config.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/public/js/admin.js"></script>
+  <script src="/public/js/admin.js"></script>
 </body>
 </html>

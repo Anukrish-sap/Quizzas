@@ -1,274 +1,250 @@
-// public/js/admin.js
+// ===============================
+// Quizzas Admin – Auth + Admin UI
+// ===============================
 
-(function () {
-  const $ = (id) => document.getElementById(id);
+// Supabase client (from config.js)
+const supabase = window.supabaseClient;
 
-  const sessionText = $("sessionText");
-  const roleText = $("roleText");
-  const globalMsg = $("globalMsg");
+// Elements
+const emailEl = document.getElementById("email");
+const passwordEl = document.getElementById("password");
 
-  const authSection = $("authSection");
-  const adminSection = $("adminSection");
+const signInBtn = document.getElementById("signInBtn");
+const signUpBtn = document.getElementById("signUpBtn");
+const signOutBtn = document.getElementById("signOutBtn");
 
-  const emailEl = $("email");
-  const passwordEl = $("password");
-  const signInBtn = $("signInBtn");
-  const signUpBtn = $("signUpBtn");
-  const signOutBtn = $("signOutBtn");
-  const authMsg = $("authMsg");
+const authMsg = document.getElementById("authMsg");
+const globalMsg = document.getElementById("globalMsg");
 
-  const newTopicName = $("newTopicName");
-  const createTopicBtn = $("createTopicBtn");
-  const topicMsg = $("topicMsg");
+const authSection = document.getElementById("authSection");
+const adminSection = document.getElementById("adminSection");
 
-  const topicSelect = $("topicSelect");
-  const questionText = $("questionText");
-  const explanationText = $("explanationText");
-  const optA = $("optA");
-  const optB = $("optB");
-  const optC = $("optC");
-  const optD = $("optD");
-  const correctSelect = $("correctSelect");
-  const addQuestionBtn = $("addQuestionBtn");
-  const questionMsg = $("questionMsg");
+const sessionText = document.getElementById("sessionText");
+const roleText = document.getElementById("roleText");
 
-  $("yearAdmin").textContent = new Date().getFullYear();
+// Admin inputs
+const topicSelect = document.getElementById("topicSelect");
+const newTopicName = document.getElementById("newTopicName");
+const createTopicBtn = document.getElementById("createTopicBtn");
 
-  function setText(el, txt) {
-    if (!el) return;
-    el.textContent = txt || "";
+const questionText = document.getElementById("questionText");
+const explanationText = document.getElementById("explanationText");
+
+const optA = document.getElementById("optA");
+const optB = document.getElementById("optB");
+const optC = document.getElementById("optC");
+const optD = document.getElementById("optD");
+
+const correctSelect = document.getElementById("correctSelect");
+const addQuestionBtn = document.getElementById("addQuestionBtn");
+
+const topicMsg = document.getElementById("topicMsg");
+const questionMsg = document.getElementById("questionMsg");
+
+// Helpers
+function setText(el, msg) {
+  if (el) el.textContent = msg || "";
+}
+
+function required(value, name) {
+  if (!value) throw new Error(`${name} is required`);
+  return value.trim();
+}
+
+// ===============================
+// AUTH UI STATE (THIS IS THE KEY)
+// ===============================
+async function updateUI() {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (session) {
+    // LOGGED IN
+    authSection.style.display = "none";
+    adminSection.style.display = "block";
+
+    signInBtn.style.display = "none";
+    signUpBtn.style.display = "none";
+    signOutBtn.style.display = "inline-block";
+
+    setText(sessionText, "Active");
+    setText(roleText, "Admin");
+
+    await loadTopics();
+  } else {
+    // LOGGED OUT
+    authSection.style.display = "block";
+    adminSection.style.display = "none";
+
+    signInBtn.style.display = "inline-block";
+    signUpBtn.style.display = "inline-block";
+    signOutBtn.style.display = "none";
+
+    setText(sessionText, "None");
+    setText(roleText, "—");
   }
+}
 
-  function required(value, label) {
-    const v = String(value ?? "").trim();
-    if (!v) throw new Error(`${label} is required.`);
-    return v;
-  }
+// ===============================
+// AUTH ACTIONS
+// ===============================
+signInBtn.addEventListener("click", async () => {
+  try {
+    setText(authMsg, "");
 
-  // Hard fail checks (this is what will tell us why buttons do nothing)
-  if (!window.QUIZZAS_CONFIG) {
-    setText(globalMsg, "ERROR: /public/js/config.js did not load. Check the file path and Live Server root.");
-    console.error("QUIZZAS_CONFIG missing. config.js not loaded.");
-    return;
-  }
-  if (!window.supabase) {
-    setText(globalMsg, "ERROR: Supabase library did not load. Check your internet or the CDN script tag.");
-    console.error("window.supabase missing. supabase-js CDN not loaded.");
-    return;
-  }
+    const email = required(emailEl.value, "Email");
+    const password = required(passwordEl.value, "Password");
 
-  const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.QUIZZAS_CONFIG;
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-  async function getSession() {
-    const { data, error } = await supabase.auth.getSession();
     if (error) throw error;
-    return data.session || null;
-  }
 
-  async function fetchIsAdmin(uid) {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("is_admin")
-      .eq("id", uid)
-      .maybeSingle();
+    setText(authMsg, "Logged in successfully.");
+    await updateUI();
+  } catch (e) {
+    setText(authMsg, e.message);
+  }
+});
+
+signUpBtn.addEventListener("click", async () => {
+  try {
+    setText(authMsg, "");
+
+    const email = required(emailEl.value, "Email");
+    const password = required(passwordEl.value, "Password");
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/public/admin.html`,
+      },
+    });
 
     if (error) {
-      // If profiles RLS is wrong, show it clearly
-      console.error("profiles select error:", error);
-      return false;
+      const msg = error.message.toLowerCase();
+      if (msg.includes("already")) {
+        setText(authMsg, "This email is already registered. Please log in.");
+        return;
+      }
+      throw error;
     }
-    return !!data?.is_admin;
+
+    if (data.session) {
+      setText(authMsg, "Account created and logged in.");
+      await updateUI();
+    } else {
+      setText(
+        authMsg,
+        "Account created. Check your email to confirm, then log in."
+      );
+    }
+  } catch (e) {
+    setText(authMsg, e.message);
   }
+});
 
-  async function refreshTopics() {
-    const { data, error } = await supabase
-      .from("topics")
-      .select("id,name")
-      .order("name", { ascending: true });
+signOutBtn.addEventListener("click", async () => {
+  await supabase.auth.signOut();
+  setText(globalMsg, "Logged out.");
+  await updateUI();
+});
 
+// ===============================
+// ADMIN FUNCTIONS
+// ===============================
+async function loadTopics() {
+  const { data, error } = await supabase
+    .from("topics")
+    .select("id,name")
+    .order("name");
+
+  if (error) return;
+
+  topicSelect.innerHTML = "";
+  data.forEach((t) => {
+    const opt = document.createElement("option");
+    opt.value = t.id;
+    opt.textContent = t.name;
+    topicSelect.appendChild(opt);
+  });
+}
+
+createTopicBtn.addEventListener("click", async () => {
+  try {
+    setText(topicMsg, "");
+    const name = required(newTopicName.value, "Topic name");
+
+    const { error } = await supabase.from("topics").insert({ name });
     if (error) throw error;
 
-    if (!data || data.length === 0) {
-      topicSelect.innerHTML = `<option value="">No topics yet</option>`;
-      return;
-    }
-    topicSelect.innerHTML = data.map(t => `<option value="${t.id}">${t.name}</option>`).join("");
+    newTopicName.value = "";
+    setText(topicMsg, "Topic created.");
+    await loadTopics();
+  } catch (e) {
+    setText(topicMsg, e.message);
   }
+});
 
-  async function updateUI() {
-    setText(authMsg, "");
-    setText(globalMsg, "");
+addQuestionBtn.addEventListener("click", async () => {
+  try {
+    setText(questionMsg, "");
 
-    const session = await getSession();
+    const topic_id = topicSelect.value;
+    const qText = required(questionText.value, "Question");
 
-    if (!session) {
-      sessionText.textContent = "Signed out";
-      roleText.textContent = "—";
-      authSection.style.display = "";
-      adminSection.style.display = "none";
-      return;
-    }
+    const { data: q, error: qErr } = await supabase
+      .from("questions")
+      .insert({
+        topic_id,
+        question_text: qText,
+        explanation: explanationText.value || "",
+      })
+      .select()
+      .single();
 
-    sessionText.textContent = "Signed in";
+    if (qErr) throw qErr;
 
-    const isAdmin = await fetchIsAdmin(session.user.id);
-    roleText.textContent = isAdmin ? "Admin" : "User";
+    const options = [
+      optA.value,
+      optB.value,
+      optC.value,
+      optD.value,
+    ];
 
-    if (!isAdmin) {
-      authSection.style.display = "";
-      adminSection.style.display = "none";
-      setText(globalMsg, "You are signed in, but not an admin. Ask the owner to set profiles.is_admin=true for your UUID.");
-      return;
-    }
+    const correctIndex = Number(correctSelect.value);
 
-    authSection.style.display = "none";
-    adminSection.style.display = "";
-    await refreshTopics();
+    const rows = options.map((text, i) => ({
+      question_id: q.id,
+      option_text: text,
+      is_correct: i === correctIndex,
+      option_order: i + 1,
+    }));
+
+    const { error: oErr } = await supabase.from("options").insert(rows);
+    if (oErr) throw oErr;
+
+    questionText.value = "";
+    explanationText.value = "";
+    optA.value = optB.value = optC.value = optD.value = "";
+
+    setText(questionMsg, "Question added successfully.");
+  } catch (e) {
+    setText(questionMsg, e.message);
   }
+});
 
-  // Auth handlers
-  signUpBtn.addEventListener("click", async () => {
-    try {
-      setText(authMsg, "");
-      const email = required(emailEl.value, "Email");
-      const password = required(passwordEl.value, "Password");
+// ===============================
+// INIT
+// ===============================
+document.getElementById("yearAdmin").textContent = new Date().getFullYear();
+updateUI();
 
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      if (error) throw error;
-
-      // Some projects require email confirmation; data.user may exist but session may be null.
-      if (data.session) {
-        setText(authMsg, "Signed up and signed in.");
-      } else {
-        setText(authMsg, "Signed up. If email confirmation is enabled, confirm your email before signing in.");
-      }
-
-      await updateUI();
-    } catch (e) {
-      console.error(e);
-      setText(authMsg, e?.message || String(e));
-    }
-  });
-
-  signInBtn.addEventListener("click", async () => {
-    try {
-      setText(authMsg, "");
-      const email = required(emailEl.value, "Email");
-      const password = required(passwordEl.value, "Password");
-
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-
-      setText(authMsg, "Signed in.");
-      await updateUI();
-    } catch (e) {
-      console.error(e);
-      setText(authMsg, e?.message || String(e));
-    }
-  });
-
-  signOutBtn.addEventListener("click", async () => {
-    try {
-      setText(globalMsg, "");
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-
-      setText(globalMsg, "Signed out.");
-      await updateUI();
-    } catch (e) {
-      console.error(e);
-      setText(globalMsg, e?.message || String(e));
-    }
-  });
-
-  // Admin: create topic
-  createTopicBtn.addEventListener("click", async () => {
-    try {
-      setText(topicMsg, "");
-      const name = required(newTopicName.value, "Topic name");
-
-      const { error } = await supabase.from("topics").insert([{ name }]);
-      if (error) throw error;
-
-      newTopicName.value = "";
-      setText(topicMsg, "Topic created.");
-      await refreshTopics();
-    } catch (e) {
-      console.error(e);
-      setText(topicMsg, e?.message || String(e));
-    }
-  });
-
-  // Admin: add question + options
-  addQuestionBtn.addEventListener("click", async () => {
-    try {
-      setText(questionMsg, "");
-
-      const topic_id = required(topicSelect.value, "Topic");
-      const qText = required(questionText.value, "Question text");
-      const explanation = String(explanationText.value || "").trim();
-
-      const options = [
-        required(optA.value, "Option A"),
-        required(optB.value, "Option B"),
-        required(optC.value, "Option C"),
-        required(optD.value, "Option D"),
-      ];
-
-      const correctIndex = parseInt(correctSelect.value, 10);
-      if (Number.isNaN(correctIndex) || correctIndex < 0 || correctIndex > 3) {
-        throw new Error("Correct option must be A, B, C, or D.");
-      }
-
-      // Insert question
-      const { data: qData, error: qErr } = await supabase
-        .from("questions")
-        .insert([{ topic_id, question_text: qText, explanation }])
-        .select("id")
-        .single();
-
-      if (qErr) throw qErr;
-
-      // Insert 4 options (option_order = 0..3)
-      const question_id = qData.id;
-      const optRows = options.map((text, i) => ({
-        question_id,
-        option_text: text,
-        option_order: i,
-        is_correct: i === correctIndex,
-      }));
-
-      const { error: oErr } = await supabase.from("options").insert(optRows);
-      if (oErr) throw oErr;
-
-      // Clear
-      questionText.value = "";
-      explanationText.value = "";
-      optA.value = "";
-      optB.value = "";
-      optC.value = "";
-      optD.value = "";
-      correctSelect.value = "0";
-
-      setText(questionMsg, "Question added successfully.");
-    } catch (e) {
-      console.error(e);
-      setText(questionMsg, e?.message || String(e));
-    }
-  });
-
-  // Live session updates
-  supabase.auth.onAuthStateChange(() => {
-    updateUI().catch((e) => {
-      console.error(e);
-      setText(globalMsg, e?.message || String(e));
-    });
-  });
-
-  // Init
-  updateUI().catch((e) => {
-    console.error(e);
-    setText(globalMsg, e?.message || String(e));
-  });
-})();
+// React to auth changes instantly
+supabase.auth.onAuthStateChange(() => {
+  updateUI();
+});
