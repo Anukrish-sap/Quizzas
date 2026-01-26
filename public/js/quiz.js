@@ -1,7 +1,10 @@
 // public/js/quiz.js
 
 const SUPABASE_URL = "https://ywqkgttthlpytpwaxwpr.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_nrvv6YM3tKg0NZL1Bkvk0w_tlVWRoEA";
+const SUPABASE_KEY = "sb_publishable_nrvv6YM3tKg0NZL1Bkvk0w_tlVWRoEA";
+
+// Footer year
+document.getElementById("year2").textContent = new Date().getFullYear();
 
 // DOM
 const topicSelect = document.getElementById("topicSelect");
@@ -46,10 +49,11 @@ function getQueryParam(name) {
 async function restGet(pathAndQuery) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${pathAndQuery}`, {
     headers: {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`
+    }
   });
+
   if (!res.ok) {
     const t = await res.text();
     throw new Error(`REST ${res.status}: ${t}`);
@@ -86,6 +90,7 @@ async function loadQuestions() {
   optionsWrap.innerHTML = "";
   questionText.textContent = "Loading questions…";
   progressText.textContent = "Loading…";
+  nextBtn.disabled = true;
 
   const topicId = topicSelect.value;
   const search = (searchBox.value || "").trim().toLowerCase();
@@ -167,7 +172,7 @@ function render() {
   const labels = ["A", "B", "C", "D"];
 
   optionsWrap.innerHTML = q.options.map((opt, i) => `
-    <div class="topicCard optionCard" data-i="${i}">
+    <div class="card optionCard" data-i="${i}">
       <div class="optionLabel">${labels[i] || "?"}</div>
       <div class="muted">${esc(opt)}</div>
     </div>
@@ -244,6 +249,17 @@ skipBtn.addEventListener("click", skip);
 
 searchBox.addEventListener("keydown", (e) => {
   if (e.key === "Enter") loadQuestions();
+});
+
+// Keyboard shortcuts
+document.addEventListener("keydown", (e) => {
+  const k = e.key.toLowerCase();
+  if (k === "a") optionsWrap.querySelector('[data-i="0"]')?.click();
+  if (k === "b") optionsWrap.querySelector('[data-i="1"]')?.click();
+  if (k === "c") optionsWrap.querySelector('[data-i="2"]')?.click();
+  if (k === "d") optionsWrap.querySelector('[data-i="3"]')?.click();
+  if (k === "n" && !nextBtn.disabled) next();
+  if (k === "s") skip();
 });
 
 // Init
