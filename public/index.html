@@ -4,13 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Quizzas</title>
-  <link rel="stylesheet" href="./assets/css/styles.css" />
+  <link rel="stylesheet" href="/assets/css/styles.css" />
 </head>
 <body>
   <header class="nav">
     <div class="brand">
-      <div class="logo" style="display:flex; align-items:center; justify-content:center;">
-        <img src="./assets/img/Quiz_logo.png" alt="Quizzas logo" height="34" style="border-radius:10px;" />
+      <div class="logo">
+        <img src="/assets/img/Quiz_logo.png" alt="Quizzas logo">
       </div>
       <div class="brandText">
         <div class="brandName">Quizzas</div>
@@ -18,10 +18,10 @@
       </div>
     </div>
 
-    <nav class="navLinks" aria-label="Primary">
-      <a class="active" href="./index.html">Home</a>
-      <a href="./quiz.html">Quiz</a>
-      <a href="./about.html">About</a>
+    <nav class="navLinks">
+      <a class="active" href="/index.html">Home</a>
+      <a href="/quiz.html">Quiz</a>
+      <a href="/about.html">About</a>
     </nav>
   </header>
 
@@ -30,17 +30,13 @@
       <div class="heroLeft">
         <h1>Practice smarter, topic by topic.</h1>
         <p>
-          Quizzas is a scalable quiz platform. Topics and questions are stored in Supabase.
-          Start with one bank today and expand later to any module.
+          Quizzas is a scalable quiz platform where questions are organised by topic.
+          Start with one subject today and expand to any domain later.
         </p>
 
         <div class="heroActions">
-          <a class="btn" href="./quiz.html">Start Quiz</a>
+          <a class="btn" href="/quiz.html">Start Quiz</a>
           <button id="reloadBtn" class="btn secondary" type="button">Reload Topics</button>
-        </div>
-
-        <div class="hint">
-          If topics don’t load, confirm RLS SELECT policies exist on <code>topics</code>, <code>questions</code>, <code>options</code>.
         </div>
       </div>
 
@@ -59,18 +55,18 @@
     <section class="section">
       <div class="sectionHead">
         <h2>Topics</h2>
-        <p>Pick a topic to start practicing. You can add more topics later without changing the site structure.</p>
+        <p>Select a topic to begin practising.</p>
       </div>
 
-      <div id="topicsGrid" class="grid" aria-live="polite"></div>
+      <div id="topicsGrid" class="grid"></div>
     </section>
 
     <footer class="footer">
       <div>© <span id="year"></span> Quizzas</div>
-      <div class="muted">Supabase-backed • Public read-only access</div>
+      <div class="muted">Powered by Supabase</div>
     </footer>
   </main>
 
-  <script src="./js/home.js"></script>
+  <script src="/js/home.js"></script>
 </body>
 </html>
