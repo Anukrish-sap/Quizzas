@@ -1,89 +1,97 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Quizzas • Quiz</title>
-  <link rel="stylesheet" href="/assets/css/styles.css" />
+  <link rel="stylesheet" href="/public/assets/css/styles.css">
 </head>
 <body>
-  <header class="nav">
-    <div class="brand">
-      <a class="brandLink" href="/index.html" aria-label="Quizzas home">
-        <img class="brandLogo" src="/assets/img/logo.png" alt="Quizzas logo" />
-        <div class="brandText">
-          <div class="brandName">Quizzas</div>
-          <div class="brandTag">Practice quizzes by topic</div>
-        </div>
-      </a>
+
+<header class="nav">
+  <div class="brand">
+    <a class="brandLink" href="/public/index.html" aria-label="Quizzas home">
+      <img class="brandLogo" src="/public/assets/img/logo.png" alt="Quizzas logo">
+      <div class="brandText">
+        <div class="brandName">Quizzas</div>
+        <div class="brandTag">Practice quizzes by topic</div>
+      </div>
+    </a>
+  </div>
+
+  <nav class="navLinks" aria-label="Primary navigation">
+    <a href="/public/index.html">Home</a>
+    <a class="active" href="/public/quiz.html">Quiz</a>
+    <a href="/public/about.html">About</a>
+  </nav>
+</header>
+
+<main class="container">
+
+  <section class="section">
+    <div class="sectionHead">
+      <h2>Quiz</h2>
+      <p>Choose a topic and start practising. Questions are loaded live from Supabase.</p>
     </div>
 
-    <nav class="navLinks" aria-label="Primary navigation">
-      <a href="/index.html">Home</a>
-      <a class="active" href="/quiz.html">Quiz</a>
-      <a href="/about.html">About</a>
-    </nav>
-  </header>
+    <div class="controls">
+      <label class="control">
+        <span>Topic</span>
+        <select id="topicSelect">
+          <option value="ALL">All topics</option>
+        </select>
+      </label>
 
-  <main class="container">
-    <section class="section">
-      <div class="sectionHead">
-        <h2>Quiz</h2>
-        <p>Select a topic and start practising.</p>
+      <label class="control">
+        <span>Search</span>
+        <input id="searchBox" type="text" placeholder="Search questions...">
+      </label>
+
+      <label class="control small">
+        <span>Limit</span>
+        <input id="limitBox" type="number" min="5" max="200" step="5" value="25">
+      </label>
+
+      <button id="reloadBtn" class="btn secondary" type="button">Reload</button>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="quizTop">
+      <div class="muted" id="progressText">Loading…</div>
+      <div class="muted">Score: <strong id="scoreText" class="score">0</strong></div>
+    </div>
+
+    <div class="quizCard">
+      <div class="muted label">Topic</div>
+      <div id="topicTag" class="topicTag">—</div>
+
+      <div id="questionText" class="questionText">Loading…</div>
+
+      <div id="optionsWrap" class="grid optionsGrid"></div>
+
+      <div id="feedbackBox" class="muted feedback"></div>
+
+      <div class="actions end">
+        <button id="skipBtn" class="btn secondary" type="button">Skip</button>
+        <button id="nextBtn" class="btn" type="button" disabled>Next</button>
       </div>
+    </div>
 
-      <div class="controls">
-        <label class="control">
-          <span>Topic</span>
-          <select id="topicSelect">
-            <option value="ALL">All topics</option>
-          </select>
-        </label>
+    <div id="doneBox" class="card doneBox" style="display:none;">
+      <h3>Finished</h3>
+      <p id="finalLine" class="muted"></p>
+      <button id="restartBtn" class="btn" type="button">Restart</button>
+    </div>
+  </section>
 
-        <label class="control">
-          <span>Search</span>
-          <input id="searchBox" type="text" placeholder="Search questions..." />
-        </label>
+  <footer class="footer">
+    <div>© <span id="year2"></span> Quizzas</div>
+    <div class="muted">Keyboard: A/B/C/D • N for next • S to skip</div>
+  </footer>
 
-        <label class="control small">
-          <span>Limit</span>
-          <input id="limitBox" type="number" min="5" max="200" step="5" value="25" />
-        </label>
+</main>
 
-        <button id="reloadBtn" class="btn secondary" type="button">Reload</button>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="quizTop">
-        <div class="muted" id="progressText">Loading…</div>
-        <div class="muted">Score: <strong id="scoreText" class="score">0</strong></div>
-      </div>
-
-      <div class="quizCard">
-        <div class="muted label">Topic</div>
-        <div id="topicTag" class="topicTag">—</div>
-
-        <div id="questionText" class="questionText">Loading…</div>
-
-        <div id="optionsWrap" class="grid optionsGrid"></div>
-
-        <div id="feedbackBox" class="muted feedback"></div>
-
-        <div class="heroActions end">
-          <button id="skipBtn" class="btn secondary" type="button">Skip</button>
-          <button id="nextBtn" class="btn" type="button" disabled>Next</button>
-        </div>
-      </div>
-
-      <div id="doneBox" class="topicCard doneBox" style="display:none;">
-        <h3>Finished</h3>
-        <p id="finalLine" class="muted"></p>
-        <button id="restartBtn" class="btn" type="button">Restart</button>
-      </div>
-    </section>
-  </main>
-
-  <script src="/js/quiz.js"></script>
+<script src="/public/js/quiz.js"></script>
 </body>
 </html>
