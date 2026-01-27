@@ -2,25 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Quizzas · Admin</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quizzas • Admin</title>
   <link rel="stylesheet" href="/public/assets/css/styles.css" />
-
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/public/js/config.js"></script>
 </head>
 
-<body>
+<body class="page-admin">
   <header class="nav">
     <div class="brand">
-      <!-- ✅ LOGO FIXED HERE -->
-      <img class="brandLogo" src="/public/assets/img/logo.png" alt="Quizzas logo">
-
+      <img src="/public/assets/img/logo.png" alt="Quizzas logo" />
       <div class="brandText">
         <div class="brandName">Quizzas</div>
-        <div class="brandTag">Admin · Manage topics & questions</div>
+        <div class="brandTag">Admin • Manage topics &amp; questions</div>
       </div>
     </div>
 
@@ -33,13 +26,37 @@
   </header>
 
   <main class="container">
-
-    <!-- STATUS -->
-    <section class="card">
-      <p class="muted">
+    <!-- AUTH CARD -->
+    <section id="authCard" class="card">
+      <p class="muted" style="margin:0 0 14px 0;">
         Log in if you already have an account. New users can sign up below.
       </p>
 
+      <h2 style="margin:0 0 10px 0;">Log in / Sign up</h2>
+
+      <div class="formGrid">
+        <div>
+          <label for="email">Email</label>
+          <input id="email" type="email" placeholder="you@example.com" autocomplete="email" />
+        </div>
+
+        <div>
+          <label for="password">Password</label>
+          <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="loginBtn" class="btn" type="button">Log in</button>
+        <button id="signupBtn" class="btn secondary" type="button">Sign up</button>
+        <button id="logoutBtn" class="btn ghost" type="button" style="display:none;">Log out</button>
+      </div>
+
+      <div id="authMsg" class="msg" aria-live="polite"></div>
+    </section>
+
+    <!-- SESSION + ROLE (hidden until logged in) -->
+    <section id="sessionCard" class="card" style="display:none;">
       <div class="stats">
         <div class="stat">
           <div class="statLabel">Session</div>
@@ -50,116 +67,58 @@
           <div class="statValue" id="roleText">—</div>
         </div>
       </div>
-
-      <p id="globalMsg" class="msg"></p>
     </section>
 
-    <!-- AUTH -->
-    <section id="authSection" class="card">
-      <h2>Log in / Sign up</h2>
+    <!-- ADMIN ACTIONS (hidden until logged in) -->
+    <section id="adminActions" class="card" style="display:none;">
+      <h2 style="margin:0 0 10px 0;">Admin Actions</h2>
+      <p class="muted" style="margin:0 0 16px 0;">Create topics and add questions directly to the database.</p>
 
-      <div class="formGrid">
-        <div>
-          <label for="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            autocomplete="email"
-          />
-        </div>
+      <h3 style="margin:0 0 10px 0;">Create topic</h3>
+      <div class="row" style="grid-template-columns: 1fr 220px;">
+        <input id="topicName" type="text" placeholder="Topic name" />
+        <button id="createTopicBtn" class="btn" type="button">Create topic</button>
+      </div>
+      <div id="topicMsg" class="msg"></div>
 
-        <div>
-          <label for="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            placeholder="••••••••"
-            autocomplete="current-password"
-          />
-        </div>
+      <hr style="border:0; height:1px; background:rgba(160,220,160,0.18); margin:18px 0;">
+
+      <h3 style="margin:0 0 10px 0;">Add question</h3>
+
+      <div class="row" style="grid-template-columns: 260px 1fr 1fr;">
+        <select id="topicSelect"></select>
+        <input id="questionText" type="text" placeholder="Question text" />
+        <input id="explanation" type="text" placeholder="Explanation (optional)" />
       </div>
 
-      <div class="actions">
-        <button id="loginBtn" class="btn" type="button">Log in</button>
-        <button id="signupBtn" class="btn secondary" type="button">Sign up</button>
-        <!-- Hidden by default; JS shows only when logged in -->
-        <button
-          id="logoutBtn"
-          class="btn ghost"
-          type="button"
-          style="display:none;"
-        >
-          Log out
-        </button>
+      <div class="row" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+        <input id="optA" type="text" placeholder="Option A" />
+        <input id="optB" type="text" placeholder="Option B" />
+        <input id="optC" type="text" placeholder="Option C" />
+        <input id="optD" type="text" placeholder="Option D" />
       </div>
 
-      <p id="authMsg" class="msg"></p>
+      <div class="row" style="grid-template-columns:auto 140px auto; align-items:center;">
+        <span class="muted">Correct option</span>
+        <select id="correctOpt">
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+          <option value="D">D</option>
+        </select>
+        <button id="addQuestionBtn" class="btn" type="button">Add question</button>
+      </div>
+
+      <div id="questionMsg" class="msg"></div>
     </section>
 
-    <!-- ADMIN ACTIONS -->
-    <section id="adminSection" class="card" style="display:none;">
-      <h2>Admin Actions</h2>
-
-      <!-- CREATE TOPIC -->
-      <div class="adminBlock">
-        <h3>Create topic</h3>
-        <div class="row">
-          <input id="newTopicName" placeholder="Topic name" />
-          <button id="createTopicBtn" class="btn" type="button">
-            Create topic
-          </button>
-        </div>
-        <p id="topicMsg" class="msg"></p>
-      </div>
-
-      <!-- ADD QUESTION -->
-      <div class="adminBlock">
-        <h3>Add question</h3>
-
-        <div class="row">
-          <select id="topicSelect"></select>
-          <input id="questionText" placeholder="Question text" />
-          <input
-            id="explanationText"
-            placeholder="Explanation (optional)"
-          />
-        </div>
-
-        <div class="row">
-          <input id="optA" placeholder="Option A" />
-          <input id="optB" placeholder="Option B" />
-          <input id="optC" placeholder="Option C" />
-          <input id="optD" placeholder="Option D" />
-        </div>
-
-        <div class="row">
-          <label for="correctSelect" class="inlineLabel">
-            Correct option
-          </label>
-
-          <select id="correctSelect">
-            <option value="0">A</option>
-            <option value="1">B</option>
-            <option value="2">C</option>
-            <option value="3">D</option>
-          </select>
-
-          <button id="addQuestionBtn" class="btn" type="button">
-            Add question
-          </button>
-        </div>
-
-        <p id="questionMsg" class="msg"></p>
-      </div>
-    </section>
-
+    <footer class="footer">
+      <div>© <span id="year"></span> Quizzas</div>
+      <div class="muted">Quizzas • Admin access protected by Supabase</div>
+    </footer>
   </main>
 
-  <footer class="footer">
-    © <span id="yearAdmin"></span> Quizzas · Admin access protected by Supabase
-  </footer>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/public/js/admin.js"></script>
 </body>
 </html>

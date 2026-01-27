@@ -1,42 +1,35 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Quizzas</title>
-  <link rel="stylesheet" href="/public/assets/css/styles.css">
+  <link rel="stylesheet" href="/public/assets/css/styles.css" />
 </head>
-<body>
 
-<header class="nav">
-  <div class="brand">
-    <a class="brandLink" href="/public/index.html" aria-label="Quizzas home">
-      <img class="brandLogo" src="/public/assets/img/logo.png" alt="Quizzas logo">
+<body class="page-home">
+  <header class="nav">
+    <div class="brand">
+      <img src="/public/assets/img/logo.png" alt="Quizzas logo" />
       <div class="brandText">
         <div class="brandName">Quizzas</div>
         <div class="brandTag">A modular quiz platform</div>
       </div>
-    </a>
-  </div>
+    </div>
 
-  <nav class="navLinks" aria-label="Primary navigation">
-    <a class="active" href="/public/index.html">Home</a>
-    <a href="/public/quiz.html">Quiz</a>
-    <a href="/public/about.html">About</a>
-    <a href="/public/admin.html">Admin</a>
-  </nav>
-</header>
+    <nav class="navLinks" aria-label="Primary">
+      <a class="active" href="/public/index.html">Home</a>
+      <a href="/public/quiz.html">Quiz</a>
+      <a href="/public/about.html">About</a>
+      <a href="/public/admin.html">Admin</a>
+    </nav>
+  </header>
 
-<main class="container">
-
-  <section class="hero">
-    <div class="heroInner">
-      <div class="heroLeft">
+  <main class="container">
+    <section class="card hero">
+      <div>
         <h1>Practice smarter, topic by topic.</h1>
-        <p>
-          Quizzas is a scalable quiz platform backed by Supabase. Topics and question banks are modular,
-          so you can add more subjects later without rewriting the website.
-        </p>
+        <p>Choose a topic, answer questions, and track your progress. Add new topics later without changing the structure.</p>
 
         <div class="actions">
           <a class="btn" href="/public/quiz.html">Start Quiz</a>
@@ -44,40 +37,33 @@
         </div>
       </div>
 
-      <div class="heroRight">
-        <div class="statCard">
-          <div class="statLabel">Topics</div>
-          <div class="statValue" id="topicCount">0</div>
-        </div>
-        <div class="statCard">
-          <div class="statLabel">Questions</div>
-          <div class="statValue" id="questionCount">0</div>
-        </div>
-        <div class="statCard">
-          <div class="statLabel">Status</div>
-          <div class="statValue" id="statusText">Loading…</div>
+      <div>
+        <div class="stats">
+          <div class="stat">
+            <div class="statLabel">Topics</div>
+            <div class="statValue" id="topicCount">—</div>
+          </div>
+          <div class="stat">
+            <div class="statLabel">Status</div>
+            <div class="statValue" id="statusText">Ready</div>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="section">
-    <div class="sectionHead">
-      <h2>Topics</h2>
-      <p>Select a topic to begin practising.</p>
-    </div>
+    <section class="card">
+      <h2 style="margin:0 0 8px 0;">Topics</h2>
+      <p class="muted" style="margin:0 0 14px 0;">Pick a topic to start practicing.</p>
+      <div id="topicsGrid" class="grid" aria-live="polite"></div>
+    </section>
 
-    <div id="topicsGrid" class="grid" aria-live="polite"></div>
-  </section>
+    <footer class="footer">
+      <div>© <span id="year"></span> Quizzas</div>
+      <div class="muted">Supabase-backed • Public read-only access</div>
+    </footer>
+  </main>
 
-  <footer class="footer">
-    <div>© <span id="year"></span> Quizzas</div>
-    <div class="muted">Powered by Supabase</div>
-  </footer>
-
-</main>
-
-<script src="/public/js/config.js"></script>
-<script src="/public/js/home.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="/public/js/home.js"></script>
 </body>
 </html>

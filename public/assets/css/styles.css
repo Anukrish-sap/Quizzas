@@ -1,6 +1,6 @@
 /* =========================================================
-   QUIZZAS – styles.css (FULL, FIXED)
-   No logo-lg • Stable header • Lime theme • Responsive
+   QUIZZAS – styles.css (GLOBAL + page-specific)
+   Lime green theme, responsive, safe logo rules
    ========================================================= */
 
 /* ---------- Reset ---------- */
@@ -10,19 +10,14 @@
 
 html, body { height: 100%; }
 
-body {
+body{
   margin: 0;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
   color: rgba(245,250,245,0.92);
-
-  background:
-    radial-gradient(1200px 700px at 15% -20%, rgba(124,255,78,0.10), transparent 55%),
-    radial-gradient(900px 600px at 85% 0%, rgba(124,255,78,0.06), transparent 55%),
-    linear-gradient(180deg, #070a08, #0b120d);
+  background: linear-gradient(180deg, #070a08, #0b120d);
 }
 
 a { color: #7CFF4E; text-decoration: none; }
@@ -38,7 +33,7 @@ img { max-width: 100%; height: auto; display: block; }
 }
 main.container { flex: 1; }
 
-/* ---------- Header / Nav (SAFE) ---------- */
+/* ---------- Header / Nav ---------- */
 .nav{
   position: sticky;
   top: 0;
@@ -57,7 +52,6 @@ main.container { flex: 1; }
   backdrop-filter: blur(10px);
 }
 
-/* Brand area */
 .brand{
   display: flex;
   align-items: center;
@@ -65,22 +59,20 @@ main.container { flex: 1; }
   min-width: 240px;
 }
 
-/* ✅ THIS controls ONLY the header logo safely */
-.brand > img{
-  width: 64px;
-  height: 64px;
+/* Safe: only logo inside header brand */
+.brand img{
+  width: 56px;
+  height: 56px;
   object-fit: contain;
   flex-shrink: 0;
   border-radius: 12px;
   background: transparent;
 }
 
-/* Text next to logo */
 .brandText{ display: grid; gap: 2px; }
 .brandName{ font-size: 20px; font-weight: 800; }
 .brandTag{ font-size: 13px; color: rgba(220,235,220,0.55); }
 
-/* Nav links */
 .navLinks{
   display: flex;
   align-items: center;
@@ -106,7 +98,7 @@ main.container { flex: 1; }
   border-color: rgba(124,255,78,0.55);
 }
 
-/* ---------- Cards / Panels ---------- */
+/* ---------- Cards ---------- */
 .card{
   background: rgba(10,16,12,0.72);
   border: 1px solid rgba(160,220,160,0.18);
@@ -119,80 +111,29 @@ main.container { flex: 1; }
 .muted{ color: rgba(220,235,220,0.70); }
 .msg{ margin-top: 12px; color: rgba(220,235,220,0.70); }
 
-/* ---------- Home Hero ---------- */
-.hero{
-  display: grid;
-  grid-template-columns: 1.4fr 0.9fr;
-  gap: 18px;
-  align-items: stretch;
+/* ---------- Buttons ---------- */
+.btn{
+  border: 1px solid rgba(124,255,78,0.45);
+  background: rgba(124,255,78,0.92);
+  color: #071009;
+  padding: 12px 18px;
+  border-radius: 999px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-
-.heroLeft h1{
-  font-size: 44px;
-  line-height: 1.06;
-  margin: 0 0 10px 0;
-}
-.heroLeft p{
-  margin: 0 0 14px 0;
-  color: rgba(220,235,220,0.70);
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-.heroActions{
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 10px;
-}
-
-/* Stats */
-.stats{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-top: 14px;
-}
-
-.stat{
-  background: rgba(10,16,12,0.82);
-  border: 1px solid rgba(160,220,160,0.28);
-  border-radius: 18px;
-  padding: 14px 16px;
-}
-
-.statLabel{
-  color: rgba(220,235,220,0.55);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: .12em;
-}
-
-.statValue{
-  margin-top: 10px;
-  font-size: 22px;
-  font-weight: 900;
+.btn.secondary{
+  background: rgba(0,0,0,0.16);
   color: #7CFF4E;
+  border-color: rgba(124,255,78,0.35);
 }
-
-/* ---------- Topic Grid ---------- */
-.grid{
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 14px;
+.btn.ghost{
+  background: transparent;
+  color: rgba(235,245,235,0.88);
+  border-color: rgba(235,245,235,0.20);
 }
-
-.topicCard{
-  border-radius: 18px;
-  border: 1px solid rgba(160,220,160,0.18);
-  background: rgba(0,0,0,0.18);
-  padding: 16px;
-  display: grid;
-  gap: 10px;
-}
-.topicCard h3{ margin: 0; font-size: 18px; }
-.topicCard p{ margin: 0; color: rgba(220,235,220,0.70); line-height: 1.55; font-size: 14px; }
 
 /* ---------- Forms ---------- */
 label{
@@ -217,6 +158,14 @@ input:focus, select:focus, textarea:focus{
   box-shadow: 0 0 0 4px rgba(124,255,78,0.10);
 }
 
+.actions{
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 14px;
+}
+
 .formGrid{
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -232,39 +181,116 @@ input:focus, select:focus, textarea:focus{
   margin-top: 12px;
 }
 
-/* ---------- Buttons ---------- */
-.actions{
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  align-items: center;
+/* ---------- Home hero ---------- */
+.hero{
+  display: grid;
+  grid-template-columns: 1.4fr 0.9fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.hero h1{
+  font-size: 44px;
+  line-height: 1.06;
+  margin: 0 0 10px 0;
+}
+
+.hero p{
+  margin: 0;
+  color: rgba(220,235,220,0.70);
+  line-height: 1.6;
+}
+
+.stats{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.stat{
+  background: rgba(10,16,12,0.82);
+  border: 1px solid rgba(160,220,160,0.28);
+  border-radius: 18px;
+  padding: 14px 16px;
+}
+
+.statLabel{
+  color: rgba(220,235,220,0.55);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+
+.statValue{
+  margin-top: 10px;
+  font-size: 22px;
+  font-weight: 900;
+  color: #7CFF4E;
+}
+
+/* ---------- Topic cards ---------- */
+.grid{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
   margin-top: 14px;
 }
 
-.btn{
-  border: 1px solid rgba(124,255,78,0.45);
-  background: rgba(124,255,78,0.92);
-  color: #071009;
-  padding: 12px 18px;
-  border-radius: 999px;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 16px 34px rgba(124,255,78,0.12);
-  display: inline-flex;
+.topicCard{
+  border-radius: 18px;
+  border: 1px solid rgba(160,220,160,0.18);
+  background: rgba(0,0,0,0.18);
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.topicCard h3{ margin: 0; font-size: 18px; }
+.topicCard p{ margin: 0; color: rgba(220,235,220,0.70); line-height: 1.55; font-size: 14px; }
+
+/* ---------- Quiz ---------- */
+.quizTop{
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
-.btn.secondary{
-  background: rgba(0,0,0,0.16);
-  color: #7CFF4E;
+
+.qTitle{
+  font-size: 22px;
+  font-weight: 900;
+  margin: 0;
+}
+
+.choiceList{
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.choice{
+  text-align: left;
+  width: 100%;
+  border-radius: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(160,220,160,0.20);
+  background: rgba(0,0,0,0.18);
+  color: rgba(245,250,245,0.92);
+  cursor: pointer;
+}
+.choice:hover{
   border-color: rgba(124,255,78,0.35);
-  box-shadow: none;
+  background: rgba(124,255,78,0.06);
 }
-.btn.ghost{
-  background: transparent;
-  color: rgba(235,245,235,0.88);
-  border-color: rgba(235,245,235,0.20);
-  box-shadow: none;
+.choice.correct{
+  border-color: rgba(124,255,78,0.55);
+  background: rgba(124,255,78,0.10);
+}
+.choice.wrong{
+  border-color: rgba(255,120,120,0.55);
+  background: rgba(255,120,120,0.08);
 }
 
 /* ---------- Footer ---------- */
@@ -281,21 +307,31 @@ input:focus, select:focus, textarea:focus{
   gap: 18px;
 }
 
+/* ---------- Page-specific ---------- */
+.page-admin{
+  background:
+    radial-gradient(1200px 700px at 15% -20%, rgba(124,255,78,0.10), transparent 55%),
+    radial-gradient(900px 600px at 85% 0%, rgba(124,255,78,0.06), transparent 55%),
+    linear-gradient(180deg, #070a08, #0b120d);
+}
+.page-admin .brand img{
+  width: 64px;
+  height: 64px;
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 980px){
   .hero{ grid-template-columns: 1fr; }
   .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .row{ grid-template-columns: 1fr; }
 }
-
 @media (max-width: 640px){
   .container{ width: min(1100px, calc(100% - 28px)); }
   .nav{ padding: 12px 14px; }
   .formGrid{ grid-template-columns: 1fr; }
   .grid{ grid-template-columns: 1fr; }
   .stats{ grid-template-columns: 1fr; }
-  .heroLeft h1{ font-size: 34px; }
-
-  /* keep logo reasonable on small screens */
-  .brand > img{ width: 52px; height: 52px; }
+  .hero h1{ font-size: 34px; }
+  .brand img{ width: 48px; height: 48px; }
+  .page-admin .brand img{ width: 56px; height: 56px; }
 }

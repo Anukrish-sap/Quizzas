@@ -1,73 +1,50 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Quizzas • About</title>
-  <link rel="stylesheet" href="/public/assets/css/styles.css">
+  <link rel="stylesheet" href="/public/assets/css/styles.css" />
 </head>
-<body>
 
-<header class="nav">
-  <div class="brand">
-    <a class="brandLink" href="/public/index.html" aria-label="Quizzas home">
-      <img class="brandLogo" src="/public/assets/img/logo.png" alt="Quizzas logo">
+<body class="page-about">
+  <header class="nav">
+    <div class="brand">
+      <img src="/public/assets/img/logo.png" alt="Quizzas logo" />
       <div class="brandText">
         <div class="brandName">Quizzas</div>
-        <div class="brandTag">About this project</div>
-      </div>
-    </a>
-  </div>
-
-  <nav class="navLinks" aria-label="Primary navigation">
-    <a href="/public/index.html">Home</a>
-    <a href="/public/quiz.html">Quiz</a>
-    <a class="active" href="/public/about.html">About</a>
-    <a href="/public/admin.html">Admin</a>
-  </nav>
-</header>
-
-<main class="container">
-
-  <section class="hero">
-    <h1>About Quizzas</h1>
-    <p>
-      Quizzas is a modular quiz platform. Topics and questions are stored in Supabase so you can expand the
-      system to any subject later without changing your site structure.
-    </p>
-  </section>
-
-  <section class="section">
-    <div class="sectionHead">
-      <h2>Tech</h2>
-      <p>HTML/CSS/JavaScript • Supabase (Postgres + REST + Auth) • RLS protected admin writes</p>
-    </div>
-
-    <div class="grid">
-      <div class="card">
-        <h3>Modular topics</h3>
-        <p class="muted">Add topics in the database and they instantly show on the homepage.</p>
-      </div>
-      <div class="card">
-        <h3>Quiz engine</h3>
-        <p class="muted">Loads questions and options dynamically and tracks score.</p>
-      </div>
-      <div class="card">
-        <h3>Admin uploader</h3>
-        <p class="muted">Admins can add questions directly from the website.</p>
+        <div class="brandTag">About the platform</div>
       </div>
     </div>
-  </section>
 
-  <footer class="footer">
-    <div>© <span id="year3"></span> Quizzas</div>
-    <div class="muted">Built for GitHub and future scaling</div>
-  </footer>
+    <nav class="navLinks" aria-label="Primary">
+      <a href="/public/index.html">Home</a>
+      <a href="/public/quiz.html">Quiz</a>
+      <a class="active" href="/public/about.html">About</a>
+      <a href="/public/admin.html">Admin</a>
+    </nav>
+  </header>
 
-</main>
+  <main class="container">
+    <section class="card">
+      <h1 style="margin:0 0 10px 0;">About Quizzas</h1>
+      <p class="muted" style="line-height:1.7;">
+        Quizzas is a modular quiz platform backed by Supabase. Topics, questions, and options are stored in Postgres.
+        The goal is to keep the structure scalable so you can add any subject later.
+      </p>
+      <p class="muted" style="line-height:1.7;">
+        Admin users can log in and create topics + questions. Public users can practice quizzes.
+      </p>
+    </section>
 
-<script>
-  document.getElementById("year3").textContent = new Date().getFullYear();
-</script>
+    <footer class="footer">
+      <div>© <span id="year"></span> Quizzas</div>
+      <div class="muted">Built for expansion.</div>
+    </footer>
+  </main>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
