@@ -27,6 +27,9 @@
   const nextBtn = document.getElementById("nextBtn");
   const finishBtn = document.getElementById("finishBtn");
 
+  // NEW: end early button (add to HTML)
+  const endBtn = document.getElementById("endBtn");
+
   const finalScore = document.getElementById("finalScore");
   const finalProgress = document.getElementById("finalProgress");
   const restartBtn = document.getElementById("restartBtn");
@@ -40,8 +43,12 @@
     if (!text) el.style.color = "";
   }
 
-  function show(el) { if (el) el.style.display = ""; }
-  function hide(el) { if (el) el.style.display = "none"; }
+  function show(el) {
+    if (el) el.style.display = "";
+  }
+  function hide(el) {
+    if (el) el.style.display = "none";
+  }
 
   function escapeHtml(s) {
     return String(s ?? "")
@@ -60,38 +67,48 @@
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // ===== QUIZ STATE =====
-  /**
-   * questions: [{ id, question_text, explanation, options:[{id, option_text, is_correct, option_order}] }]
-   */
   let questions = [];
   let index = 0;
 
-  // answers[qid] = optionId | null (null = skipped)
+  // answers[qid] = optionId | null (null = skipped) | undefined (unanswered)
   const answers = Object.create(null);
 
-  // correctness[qid] = true|false|null (null = not answered yet / skipped)
+  // correctness[qid] = true|false|null (null = skipped/unanswered)
   const correctness = Object.create(null);
 
-  let started = false;
+  // lock after selecting answer so they can’t change it unless they go Back
+  const locked = Object.create(null);
 
   function totalCount() {
     return questions.length;
   }
 
-  function answeredCount() {
-    return questions.filter(q => answers[q.id] !== undefined).length; // includes skipped(null)
+  function attemptedCount() {
+    // selected option (NOT skipped)
+    return questions.filter((q) => typeof answers[q.id] === "number").length;
   }
 
   function skippedCount() {
-    return questions.filter(q => answers[q.id] === null).length;
+    return questions.filter((q) => answers[q.id] === null).length;
+  }
+
+  function unansweredCount() {
+    return questions.filter((q) => answers[q.id] === undefined).length;
+  }
+
+  function rightCount() {
+    let r = 0;
+    for (const q of questions) if (correctness[q.id] === true) r++;
+    return r;
+  }
+
+  function wrongCount() {
+    // wrong = attempted - right
+    return attemptedCount() - rightCount();
   }
 
   function score() {
-    let s = 0;
-    for (const q of questions) {
-      if (correctness[q.id] === true) s++;
-    }
-    return s;
+    return rightCount();
   }
 
   function updateTopBar() {
@@ -101,51 +118,56 @@
   }
 
   function setNavButtons() {
-    // Back disabled on first question
     backBtn.disabled = index === 0;
 
-    // Next logic:
-    // - Before start, everything hidden anyway
-    // - After start: Next is disabled until user selects an answer OR hits Skip for current Q
     const q = questions[index];
-    const hasDecision = q && answers[q.id] !== undefined; // includes null skip
-    nextBtn.disabled = !hasDecision;
+    const selectedAnswer = q ? answers[q.id] : undefined;
 
-    // Last question: show Finish instead of Next
+    // ✅ Next/Finish only enabled if user selected an answer (NOT skip)
+    const canNext = selectedAnswer !== undefined && selectedAnswer !== null;
+
     const last = index === totalCount() - 1;
     if (last) {
       hide(nextBtn);
       show(finishBtn);
-      finishBtn.disabled = !hasDecision; // must answer/skip final question
+      finishBtn.disabled = !canNext;
     } else {
       show(nextBtn);
       hide(finishBtn);
+      nextBtn.disabled = !canNext;
     }
   }
 
   function renderQuestion() {
     if (!questions.length) return;
 
-    setMsg(quizMsg, "");
-
     const q = questions[index];
     questionTitle.textContent = q.question_text || "—";
 
-    // render options as buttons (radio feel)
+    // 2x2 layout
+    if (optionsWrap) {
+      optionsWrap.style.display = "grid";
+      optionsWrap.style.gridTemplateColumns = "1fr 1fr";
+      optionsWrap.style.gap = "10px";
+    }
+
     const selected = answers[q.id]; // optionId | null | undefined
-    const opts = q.options || [];
+    const opts = (q.options || [])
+      .slice()
+      .sort((a, b) => (a.option_order ?? 0) - (b.option_order ?? 0));
 
     optionsWrap.innerHTML = opts
-      .sort((a, b) => (a.option_order ?? 0) - (b.option_order ?? 0))
       .map((opt) => {
         const isSelected = selected === opt.id;
-        // use existing button classes
         const cls = isSelected ? "btn" : "btn secondary";
+        const disabled = locked[q.id] ? "disabled" : "";
+
         return `
           <button
             type="button"
             class="${cls}"
             data-opt-id="${opt.id}"
+            ${disabled}
             style="width:100%; text-align:left; padding:14px; border-radius:14px;"
           >
             ${escapeHtml(opt.option_text)}
@@ -153,6 +175,15 @@
         `;
       })
       .join("");
+
+    // feedback
+    if (selected !== undefined && selected !== null) {
+      setMsg(quizMsg, correctness[q.id] ? "✅ Correct!" : "❌ Wrong!", correctness[q.id] === true);
+    } else if (selected === null) {
+      setMsg(quizMsg, "Skipped.", false);
+    } else {
+      setMsg(quizMsg, "");
+    }
 
     updateTopBar();
     setNavButtons();
@@ -162,23 +193,32 @@
     const q = questions[index];
     if (!q) return;
 
+    if (locked[q.id]) return;
+
     answers[q.id] = optionId;
 
-    const opt = (q.options || []).find(o => o.id === optionId);
-    if (!opt) {
-      correctness[q.id] = null;
-    } else {
-      correctness[q.id] = !!opt.is_correct;
-    }
+    const opt = (q.options || []).find((o) => o.id === optionId);
+    correctness[q.id] = opt ? !!opt.is_correct : null;
+
+    locked[q.id] = true;
+
+    setMsg(quizMsg, correctness[q.id] ? "✅ Correct!" : "❌ Wrong!", correctness[q.id] === true);
+
     renderQuestion();
   }
 
-  function applySkip() {
+  function skipCurrentAndGoNext() {
     const q = questions[index];
     if (!q) return;
-    answers[q.id] = null;
-    correctness[q.id] = null;
-    renderQuestion();
+
+    // only mark skipped if not already answered
+    if (answers[q.id] === undefined) {
+      answers[q.id] = null;
+      correctness[q.id] = null;
+      locked[q.id] = false;
+    }
+
+    goNext();
   }
 
   function goNext() {
@@ -186,7 +226,7 @@
       index++;
       renderQuestion();
     } else {
-      finish();
+      finish("completed");
     }
   }
 
@@ -197,27 +237,42 @@
     }
   }
 
-  function finish() {
+  function finish(reason = "completed") {
     hide(quizCard);
     hide(setupCard);
     show(resultCard);
 
     const total = totalCount();
-    finalScore.textContent = `${score()} / ${total}`;
-    finalProgress.textContent = `${answeredCount()} answered • ${skippedCount()} skipped • ${total} total`;
+    const right = rightCount();
+    const wrong = wrongCount();
+    const skipped = skippedCount();
+    const unanswered = unansweredCount();
 
-    setMsg(resultMsg, "Nice. You can restart any time.", true);
+    finalScore.textContent = `${right} / ${total}`;
+
+    // ✅ what you asked: right / wrong / skipped (and unanswered if ended early)
+    finalProgress.textContent = `Right: ${right} • Wrong: ${wrong} • Skipped: ${skipped} • Unanswered: ${unanswered} • Total: ${total}`;
+
+    if (reason === "ended") {
+      setMsg(resultMsg, "Quiz ended early.", false);
+    } else {
+      setMsg(resultMsg, "Quiz finished ✅", true);
+    }
+  }
+
+  function endEarly() {
+    // just finish with reason "ended"
+    finish("ended");
   }
 
   function resetAll() {
     questions = [];
     index = 0;
-    started = false;
 
     for (const k of Object.keys(answers)) delete answers[k];
     for (const k of Object.keys(correctness)) delete correctness[k];
+    for (const k of Object.keys(locked)) delete locked[k];
 
-    // UI reset
     show(setupCard);
     hide(quizCard);
     hide(resultCard);
@@ -226,7 +281,7 @@
     setMsg(quizMsg, "");
     setMsg(resultMsg, "");
 
-    optionsWrap.innerHTML = "";
+    if (optionsWrap) optionsWrap.innerHTML = "";
     questionTitle.textContent = "—";
     progressText.textContent = "Question — / —";
     scoreText.textContent = "Score: 0";
@@ -238,10 +293,7 @@
 
     topicSelect.innerHTML = `<option value="">Loading topics...</option>`;
 
-    const { data, error } = await sb
-      .from("topics")
-      .select("id,name")
-      .order("name", { ascending: true });
+    const { data, error } = await sb.from("topics").select("id,name").order("name", { ascending: true });
 
     if (error) {
       topicSelect.innerHTML = `<option value="">Failed to load topics</option>`;
@@ -254,14 +306,11 @@
       return;
     }
 
-    topicSelect.innerHTML = data
-      .map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`)
-      .join("");
+    topicSelect.innerHTML = data.map((t) => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join("");
   }
 
   // ===== LOAD QUESTIONS + OPTIONS =====
   async function loadQuizForTopic(topicId) {
-    // Load questions
     const { data: qData, error: qErr } = await sb
       .from("questions")
       .select("id, question_text, explanation")
@@ -269,14 +318,10 @@
       .order("id", { ascending: true });
 
     if (qErr) throw new Error(qErr.message);
+    if (!qData || qData.length === 0) return [];
 
-    if (!qData || qData.length === 0) {
-      return [];
-    }
+    const qIds = qData.map((q) => q.id);
 
-    const qIds = qData.map(q => q.id);
-
-    // Load options for all questions
     const { data: oData, error: oErr } = await sb
       .from("options")
       .select("id, question_id, option_text, is_correct, option_order")
@@ -286,14 +331,14 @@
     if (oErr) throw new Error(oErr.message);
 
     const optionsByQ = new Map();
-    for (const opt of (oData || [])) {
+    for (const opt of oData || []) {
       if (!optionsByQ.has(opt.question_id)) optionsByQ.set(opt.question_id, []);
       optionsByQ.get(opt.question_id).push(opt);
     }
 
-    return qData.map(q => ({
+    return qData.map((q) => ({
       ...q,
-      options: optionsByQ.get(q.id) || []
+      options: optionsByQ.get(q.id) || [],
     }));
   }
 
@@ -308,7 +353,6 @@
 
     try {
       const loaded = await loadQuizForTopic(topicId);
-
       if (!loaded.length) {
         setMsg(setupMsg, "No questions in this topic yet.");
         return;
@@ -316,17 +360,13 @@
 
       questions = loaded;
       index = 0;
-      started = true;
 
       hide(setupCard);
       show(quizCard);
       hide(resultCard);
 
-      // Require answer/skip before next
       renderQuestion();
-      // next/finish initially disabled
       setNavButtons();
-
     } catch (e) {
       setMsg(setupMsg, "Failed to start quiz: " + (e.message || "Unknown error"));
     } finally {
@@ -338,26 +378,32 @@
   // ===== EVENTS =====
   startBtn?.addEventListener("click", start);
 
-  // Option click (event delegation)
   optionsWrap?.addEventListener("click", (e) => {
     const btn = e.target.closest("button[data-opt-id]");
     if (!btn) return;
+    if (btn.disabled) return;
+
     const optId = Number(btn.getAttribute("data-opt-id"));
     if (!Number.isFinite(optId)) return;
+
     applyAnswer(optId);
   });
 
-  backBtn?.addEventListener("click", goBack);
-
-  skipBtn?.addEventListener("click", () => {
-    applySkip();
-    // auto move forward after skip (like Kahoot)
-    // If you DON'T want auto move, delete next line:
-    goNext();
+  backBtn?.addEventListener("click", () => {
+    // allow re-answer when coming back
+    const q = questions[index];
+    if (q) locked[q.id] = false;
+    goBack();
   });
 
+  skipBtn?.addEventListener("click", skipCurrentAndGoNext);
+
   nextBtn?.addEventListener("click", goNext);
-  finishBtn?.addEventListener("click", finish);
+
+  finishBtn?.addEventListener("click", () => finish("completed"));
+
+  // NEW: end early
+  endBtn?.addEventListener("click", endEarly);
 
   restartBtn?.addEventListener("click", async () => {
     resetAll();
