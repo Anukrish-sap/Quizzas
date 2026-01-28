@@ -13,7 +13,7 @@
       <img src="/public/assets/img/logo.png" alt="Quizzas logo" />
       <div class="brandText">
         <div class="brandName">Quizzas</div>
-        <div class="brandTag">Quiz • Practice mode</div>
+        <div class="brandTag">Quiz • Test yourself</div>
       </div>
     </div>
 
@@ -26,38 +26,73 @@
   </header>
 
   <main class="container">
-    <section class="card">
-      <div class="quizTop">
-        <div>
-          <h2 class="qTitle" id="quizTopic">Choose a topic</h2>
-          <p class="muted" id="quizHint" style="margin:6px 0 0 0;">Select a topic, then start.</p>
-        </div>
+    <!-- SETUP CARD -->
+    <section id="setupCard" class="card">
+      <h2 style="margin:0 0 10px 0;">Start a quiz</h2>
+      <p class="muted" style="margin:0 0 14px 0;">Pick a topic, then press Start.</p>
 
-        <div style="min-width:260px;">
-          <label for="topicPick">Topic</label>
-          <select id="topicPick"></select>
-        </div>
+      <div class="row" style="grid-template-columns: 1fr 220px;">
+        <select id="topicSelect"></select>
+        <button id="startBtn" class="btn" type="button">Start</button>
+      </div>
 
-        <div class="actions">
-          <button id="startBtn" class="btn" type="button">Start</button>
-          <button id="nextBtn" class="btn secondary" type="button" disabled>Next</button>
-        </div>
+      <div id="setupMsg" class="msg" style="margin-top:10px;"></div>
+    </section>
+
+    <!-- QUIZ CARD -->
+    <section id="quizCard" class="card" style="display:none;">
+      <div class="row" style="grid-template-columns: 1fr auto; align-items:center;">
+        <div class="muted" id="progressText">Question — / —</div>
+        <div class="muted" id="scoreText">Score: 0</div>
+      </div>
+
+      <h2 id="questionTitle" style="margin:12px 0 10px 0;">—</h2>
+
+      <div id="optionsWrap" class="grid" style="gap:10px;"></div>
+
+      <div id="quizMsg" class="msg" style="margin-top:10px;"></div>
+
+      <div class="actions" style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button id="backBtn" class="btn ghost" type="button">Back</button>
+        <button id="skipBtn" class="btn secondary" type="button">Skip</button>
+        <button id="nextBtn" class="btn" type="button">Next</button>
+        <button id="finishBtn" class="btn" type="button" style="display:none;">Finish</button>
       </div>
     </section>
 
-    <section class="card" id="questionCard" style="display:none;">
-      <h3 id="questionText" style="margin:0 0 10px 0;"></h3>
-      <div id="choices" class="choiceList"></div>
-      <div id="feedback" class="msg"></div>
+    <!-- RESULT CARD -->
+    <section id="resultCard" class="card" style="display:none;">
+      <h2 style="margin:0 0 10px 0;">Finished 🎉</h2>
+      <div class="row" style="grid-template-columns: 1fr 1fr; gap:12px;">
+        <div class="stat">
+          <div class="statLabel">Final score</div>
+          <div class="statValue" id="finalScore">—</div>
+        </div>
+        <div class="stat">
+          <div class="statLabel">Progress</div>
+          <div class="statValue" id="finalProgress">—</div>
+        </div>
+      </div>
+
+      <div class="actions" style="margin-top:14px;">
+        <button id="restartBtn" class="btn" type="button">Restart</button>
+      </div>
+
+      <div id="resultMsg" class="msg" style="margin-top:10px;"></div>
     </section>
 
     <footer class="footer">
       <div>© <span id="year"></span> Quizzas</div>
-      <div class="muted">Good luck.</div>
+      <div class="muted">Quiz powered by Supabase</div>
     </footer>
   </main>
 
+  <script>
+    const y = document.getElementById("year");
+    if (y) y.textContent = new Date().getFullYear();
+  </script>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script type="module" src="/public/js/quiz.js"></script>
+  <script src="/public/js/quiz.js?v=1" defer></script>
 </body>
 </html>
