@@ -1,9 +1,5 @@
-/* =========================================================
-   QUIZZAS – styles.css (GLOBAL + page-specific)
-   Lime green theme, responsive, safe logo rules
-   ========================================================= */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap");
 
-/* ---------- Reset ---------- */
 *,
 *::before,
 *::after { box-sizing: border-box; }
@@ -15,9 +11,13 @@ body{
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  letter-spacing: -0.01em;
   color: rgba(245,250,245,0.92);
-  background: linear-gradient(180deg, #070a08, #0b120d);
+  background:
+    radial-gradient(1200px 700px at 15% -20%, rgba(124,255,78,0.10), transparent 55%),
+    radial-gradient(900px 600px at 85% 0%, rgba(124,255,78,0.06), transparent 55%),
+    linear-gradient(180deg, #070a08, #0b120d);
 }
 
 a { color: #7CFF4E; text-decoration: none; }
@@ -25,7 +25,6 @@ a:hover { text-decoration: underline; }
 
 img { max-width: 100%; height: auto; display: block; }
 
-/* ---------- Layout ---------- */
 .container{
   width: min(1100px, calc(100% - 48px));
   margin: 0 auto;
@@ -33,20 +32,16 @@ img { max-width: 100%; height: auto; display: block; }
 }
 main.container { flex: 1; }
 
-/* ---------- Header / Nav ---------- */
 .nav{
   position: sticky;
   top: 0;
   z-index: 50;
-
   width: 100%;
   padding: 14px 24px;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-
   background: rgba(0,0,0,0.35);
   border-bottom: 1px solid rgba(160,220,160,0.18);
   backdrop-filter: blur(10px);
@@ -59,7 +54,6 @@ main.container { flex: 1; }
   min-width: 240px;
 }
 
-/* Safe: only logo inside header brand */
 .brand img{
   width: 56px;
   height: 56px;
@@ -70,7 +64,7 @@ main.container { flex: 1; }
 }
 
 .brandText{ display: grid; gap: 2px; }
-.brandName{ font-size: 20px; font-weight: 800; }
+.brandName{ font-size: 20px; font-weight: 900; letter-spacing: -0.02em; }
 .brandTag{ font-size: 13px; color: rgba(220,235,220,0.55); }
 
 .navLinks{
@@ -83,14 +77,16 @@ main.container { flex: 1; }
 .navLinks a{
   padding: 10px 12px;
   border-radius: 12px;
-  font-weight: 700;
+  font-weight: 800;
   color: rgba(235,245,235,0.88);
   border: 1px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
 }
 .navLinks a:hover{
   background: rgba(124,255,78,0.07);
   border-color: rgba(124,255,78,0.18);
   text-decoration: none;
+  transform: translateY(-1px);
 }
 .navLinks a.active{
   background: rgba(124,255,78,0.92);
@@ -98,49 +94,66 @@ main.container { flex: 1; }
   border-color: rgba(124,255,78,0.55);
 }
 
-/* ---------- Cards ---------- */
 .card{
-  background: rgba(10,16,12,0.72);
-  border: 1px solid rgba(160,220,160,0.18);
+  background: rgba(10,16,12,0.78);
+  border: 1px solid rgba(160,220,160,0.22);
   border-radius: 24px;
   padding: 22px;
-  box-shadow: 0 18px 60px rgba(0,0,0,0.55);
+  box-shadow: 0 18px 70px rgba(0,0,0,0.62);
   margin: 18px 0;
 }
 
 .muted{ color: rgba(220,235,220,0.70); }
 .msg{ margin-top: 12px; color: rgba(220,235,220,0.70); }
 
-/* ---------- Buttons ---------- */
 .btn{
   border: 1px solid rgba(124,255,78,0.45);
   background: rgba(124,255,78,0.92);
   color: #071009;
   padding: 12px 18px;
   border-radius: 999px;
-  font-weight: 800;
+  font-weight: 900;
+  letter-spacing: -0.01em;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
 }
+.btn:hover{
+  transform: translateY(-1px);
+  background: rgba(124,255,78,0.96);
+  border-color: rgba(124,255,78,0.65);
+}
+.btn:active{ transform: translateY(0px) scale(0.99); }
+.btn:disabled{ opacity: 0.45; cursor: not-allowed; transform: none; }
+
 .btn.secondary{
   background: rgba(0,0,0,0.16);
   color: #7CFF4E;
   border-color: rgba(124,255,78,0.35);
 }
+.btn.secondary:hover{
+  background: rgba(124,255,78,0.06);
+  border-color: rgba(124,255,78,0.55);
+}
+
 .btn.ghost{
   background: transparent;
   color: rgba(235,245,235,0.88);
   border-color: rgba(235,245,235,0.20);
 }
+.btn.ghost:hover{
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(235,245,235,0.28);
+}
 
-/* ---------- Forms ---------- */
 label{
   display: block;
   font-size: 13px;
   color: rgba(220,235,220,0.70);
   margin-bottom: 6px;
+  font-weight: 800;
 }
 
 input, select, textarea{
@@ -181,7 +194,6 @@ input:focus, select:focus, textarea:focus{
   margin-top: 12px;
 }
 
-/* ---------- Home hero ---------- */
 .hero{
   display: grid;
   grid-template-columns: 1.4fr 0.9fr;
@@ -193,6 +205,8 @@ input:focus, select:focus, textarea:focus{
   font-size: 44px;
   line-height: 1.06;
   margin: 0 0 10px 0;
+  font-weight: 900;
+  letter-spacing: -0.03em;
 }
 
 .hero p{
@@ -220,6 +234,7 @@ input:focus, select:focus, textarea:focus{
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: .12em;
+  font-weight: 800;
 }
 
 .statValue{
@@ -227,9 +242,9 @@ input:focus, select:focus, textarea:focus{
   font-size: 22px;
   font-weight: 900;
   color: #7CFF4E;
+  letter-spacing: -0.02em;
 }
 
-/* ---------- Topic cards ---------- */
 .grid{
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -246,10 +261,9 @@ input:focus, select:focus, textarea:focus{
   gap: 10px;
 }
 
-.topicCard h3{ margin: 0; font-size: 18px; }
+.topicCard h3{ margin: 0; font-size: 18px; font-weight: 900; letter-spacing: -0.02em; }
 .topicCard p{ margin: 0; color: rgba(220,235,220,0.70); line-height: 1.55; font-size: 14px; }
 
-/* ---------- Quiz ---------- */
 .quizTop{
   display: flex;
   align-items: center;
@@ -262,6 +276,7 @@ input:focus, select:focus, textarea:focus{
   font-size: 22px;
   font-weight: 900;
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .choiceList{
@@ -273,27 +288,64 @@ input:focus, select:focus, textarea:focus{
 .choice{
   text-align: left;
   width: 100%;
-  border-radius: 16px;
-  padding: 12px 14px;
-  border: 1px solid rgba(160,220,160,0.20);
+  border-radius: 18px;
+  padding: 14px 14px;
+  border: 1px solid rgba(160,220,160,0.22);
   background: rgba(0,0,0,0.18);
-  color: rgba(245,250,245,0.92);
+  color: rgba(245,250,245,0.94);
   cursor: pointer;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  transition: transform 0.08s ease, background 0.16s ease, border-color 0.16s ease, opacity 0.16s ease;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.25);
 }
 .choice:hover{
-  border-color: rgba(124,255,78,0.35);
+  transform: translateY(-1px);
+  border-color: rgba(124,255,78,0.45);
   background: rgba(124,255,78,0.06);
 }
+.choice:active{
+  transform: translateY(0px) scale(0.99);
+}
 .choice.correct{
-  border-color: rgba(124,255,78,0.55);
-  background: rgba(124,255,78,0.10);
+  border-color: rgba(124,255,78,0.62);
+  background: rgba(124,255,78,0.12);
 }
 .choice.wrong{
-  border-color: rgba(255,120,120,0.55);
-  background: rgba(255,120,120,0.08);
+  border-color: rgba(255,120,120,0.62);
+  background: rgba(255,120,120,0.10);
+}
+.choice[disabled]{
+  opacity: 0.62;
+  cursor: not-allowed;
+  transform: none;
 }
 
-/* ---------- Footer ---------- */
+.page-quiz #optionsWrap.grid{
+  grid-template-columns: 1fr 1fr;
+}
+
+.page-quiz #questionTitle{
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.18;
+}
+
+.page-quiz #quizMsg.msg{
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.page-quiz #endBtn.btn.ghost{
+  border-color: rgba(255,120,120,0.40);
+  color: rgba(255,200,200,0.95);
+}
+.page-quiz #endBtn.btn.ghost:hover{
+  background: rgba(255,120,120,0.10);
+  border-color: rgba(255,120,120,0.55);
+}
+
 .footer{
   margin-top: auto;
   width: 100%;
@@ -307,7 +359,6 @@ input:focus, select:focus, textarea:focus{
   gap: 18px;
 }
 
-/* ---------- Page-specific ---------- */
 .page-admin{
   background:
     radial-gradient(1200px 700px at 15% -20%, rgba(124,255,78,0.10), transparent 55%),
@@ -319,7 +370,6 @@ input:focus, select:focus, textarea:focus{
   height: 64px;
 }
 
-/* ---------- Responsive ---------- */
 @media (max-width: 980px){
   .hero{ grid-template-columns: 1fr; }
   .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -334,4 +384,5 @@ input:focus, select:focus, textarea:focus{
   .hero h1{ font-size: 34px; }
   .brand img{ width: 48px; height: 48px; }
   .page-admin .brand img{ width: 56px; height: 56px; }
+  .page-quiz #optionsWrap.grid{ grid-template-columns: 1fr; }
 }

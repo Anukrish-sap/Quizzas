@@ -1,3 +1,4 @@
+
 (function () {
   if (window.__QUIZ_JS_RUNNING__) return;
   window.__QUIZ_JS_RUNNING__ = true;
@@ -26,8 +27,6 @@
   const skipBtn = document.getElementById("skipBtn");
   const nextBtn = document.getElementById("nextBtn");
   const finishBtn = document.getElementById("finishBtn");
-
-  // NEW: end early button (add to HTML)
   const endBtn = document.getElementById("endBtn");
 
   const finalScore = document.getElementById("finalScore");
@@ -70,7 +69,7 @@
   let questions = [];
   let index = 0;
 
-  // answers[qid] = optionId | null (null = skipped) | undefined (unanswered)
+  // answers[qid] = optionId | null (skipped) | undefined (unanswered)
   const answers = Object.create(null);
 
   // correctness[qid] = true|false|null (null = skipped/unanswered)
@@ -84,7 +83,6 @@
   }
 
   function attemptedCount() {
-    // selected option (NOT skipped)
     return questions.filter((q) => typeof answers[q.id] === "number").length;
   }
 
@@ -103,7 +101,6 @@
   }
 
   function wrongCount() {
-    // wrong = attempted - right
     return attemptedCount() - rightCount();
   }
 
@@ -113,28 +110,32 @@
 
   function updateTopBar() {
     const total = totalCount();
-    progressText.textContent = `Question ${Math.min(index + 1, total)} / ${total}`;
-    scoreText.textContent = `Score: ${score()}`;
+    if (progressText) progressText.textContent = `Question ${Math.min(index + 1, total)} / ${total}`;
+    if (scoreText) scoreText.textContent = `Score: ${score()}`;
   }
 
   function setNavButtons() {
-    backBtn.disabled = index === 0;
+    if (backBtn) backBtn.disabled = index === 0;
 
     const q = questions[index];
     const selectedAnswer = q ? answers[q.id] : undefined;
 
-    // ✅ Next/Finish only enabled if user selected an answer (NOT skip)
+    // Next/Finish only enabled if user selected an answer (NOT skip)
     const canNext = selectedAnswer !== undefined && selectedAnswer !== null;
 
     const last = index === totalCount() - 1;
     if (last) {
-      hide(nextBtn);
-      show(finishBtn);
-      finishBtn.disabled = !canNext;
+      if (nextBtn) hide(nextBtn);
+      if (finishBtn) {
+        show(finishBtn);
+        finishBtn.disabled = !canNext;
+      }
     } else {
-      show(nextBtn);
-      hide(finishBtn);
-      nextBtn.disabled = !canNext;
+      if (nextBtn) {
+        show(nextBtn);
+        nextBtn.disabled = !canNext;
+      }
+      if (finishBtn) hide(finishBtn);
     }
   }
 
@@ -142,9 +143,9 @@
     if (!questions.length) return;
 
     const q = questions[index];
-    questionTitle.textContent = q.question_text || "—";
+    if (questionTitle) questionTitle.textContent = q.question_text || "—";
 
-    // 2x2 layout
+    // enforce 2 columns on quiz page options (your CSS .grid is 3 columns by default)
     if (optionsWrap) {
       optionsWrap.style.display = "grid";
       optionsWrap.style.gridTemplateColumns = "1fr 1fr";
@@ -152,29 +153,31 @@
     }
 
     const selected = answers[q.id]; // optionId | null | undefined
-    const opts = (q.options || [])
-      .slice()
-      .sort((a, b) => (a.option_order ?? 0) - (b.option_order ?? 0));
+    const opts = (q.options || []).slice().sort((a, b) => (a.option_order ?? 0) - (b.option_order ?? 0));
 
-    optionsWrap.innerHTML = opts
-      .map((opt) => {
-        const isSelected = selected === opt.id;
-        const cls = isSelected ? "btn" : "btn secondary";
-        const disabled = locked[q.id] ? "disabled" : "";
+    if (optionsWrap) {
+      optionsWrap.innerHTML = opts
+        .map((opt) => {
+          const isSelected = selected === opt.id;
 
-        return `
-          <button
-            type="button"
-            class="${cls}"
-            data-opt-id="${opt.id}"
-            ${disabled}
-            style="width:100%; text-align:left; padding:14px; border-radius:14px;"
-          >
-            ${escapeHtml(opt.option_text)}
-          </button>
-        `;
-      })
-      .join("");
+          // Use your button system, but make options feel like "choice cards"
+          const cls = isSelected ? "choice correct" : "choice";
+          const disabled = locked[q.id] ? "disabled" : "";
+
+          return `
+            <button
+              type="button"
+              class="${cls}"
+              data-opt-id="${opt.id}"
+              ${disabled}
+              aria-pressed="${isSelected ? "true" : "false"}"
+            >
+              ${escapeHtml(opt.option_text)}
+            </button>
+          `;
+        })
+        .join("");
+    }
 
     // feedback
     if (selected !== undefined && selected !== null) {
@@ -192,7 +195,6 @@
   function applyAnswer(optionId) {
     const q = questions[index];
     if (!q) return;
-
     if (locked[q.id]) return;
 
     answers[q.id] = optionId;
@@ -211,7 +213,6 @@
     const q = questions[index];
     if (!q) return;
 
-    // only mark skipped if not already answered
     if (answers[q.id] === undefined) {
       answers[q.id] = null;
       correctness[q.id] = null;
@@ -248,20 +249,15 @@
     const skipped = skippedCount();
     const unanswered = unansweredCount();
 
-    finalScore.textContent = `${right} / ${total}`;
+    if (finalScore) finalScore.textContent = `${right} / ${total}`;
+    if (finalProgress)
+      finalProgress.textContent = `Right: ${right} • Wrong: ${wrong} • Skipped: ${skipped} • Unanswered: ${unanswered} • Total: ${total}`;
 
-    // ✅ what you asked: right / wrong / skipped (and unanswered if ended early)
-    finalProgress.textContent = `Right: ${right} • Wrong: ${wrong} • Skipped: ${skipped} • Unanswered: ${unanswered} • Total: ${total}`;
-
-    if (reason === "ended") {
-      setMsg(resultMsg, "Quiz ended early.", false);
-    } else {
-      setMsg(resultMsg, "Quiz finished ✅", true);
-    }
+    if (reason === "ended") setMsg(resultMsg, "Quiz ended early.", false);
+    else setMsg(resultMsg, "Quiz finished ✅", true);
   }
 
   function endEarly() {
-    // just finish with reason "ended"
     finish("ended");
   }
 
@@ -282,9 +278,9 @@
     setMsg(resultMsg, "");
 
     if (optionsWrap) optionsWrap.innerHTML = "";
-    questionTitle.textContent = "—";
-    progressText.textContent = "Question — / —";
-    scoreText.textContent = "Score: 0";
+    if (questionTitle) questionTitle.textContent = "—";
+    if (progressText) progressText.textContent = "Question — / —";
+    if (scoreText) scoreText.textContent = "Score: 0";
   }
 
   // ===== LOAD TOPICS =====
@@ -390,19 +386,14 @@
   });
 
   backBtn?.addEventListener("click", () => {
-    // allow re-answer when coming back
     const q = questions[index];
     if (q) locked[q.id] = false;
     goBack();
   });
 
   skipBtn?.addEventListener("click", skipCurrentAndGoNext);
-
   nextBtn?.addEventListener("click", goNext);
-
   finishBtn?.addEventListener("click", () => finish("completed"));
-
-  // NEW: end early
   endBtn?.addEventListener("click", endEarly);
 
   restartBtn?.addEventListener("click", async () => {
