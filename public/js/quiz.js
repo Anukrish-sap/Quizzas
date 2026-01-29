@@ -1,14 +1,11 @@
-
 (function () {
   if (window.__QUIZ_JS_RUNNING__) return;
   window.__QUIZ_JS_RUNNING__ = true;
 
-  // ===== SUPABASE CONFIG =====
   const SUPABASE_URL = "https://ywqkgttthlpytpwaxwpr.supabase.co";
   const SUPABASE_ANON_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3cWtndHR0aGxweXRwd2F4d3ByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NjQ0NTIsImV4cCI6MjA4NDM0MDQ1Mn0.RzCeAl7ouzH5weMLKGiJUPx_1GQvQOe3DP50JR4NbFE";
 
-  // ===== ELEMENTS =====
   const setupCard = document.getElementById("setupCard");
   const quizCard = document.getElementById("quizCard");
   const resultCard = document.getElementById("resultCard");
@@ -34,12 +31,39 @@
   const restartBtn = document.getElementById("restartBtn");
   const resultMsg = document.getElementById("resultMsg");
 
-  // ===== HELPERS =====
-  function setMsg(el, text, ok = false) {
+  function ensureFeedbackStyles() {
+    if (document.getElementById("quiz-feedback-styles")) return;
+    const style = document.createElement("style");
+    style.id = "quiz-feedback-styles";
+    style.textContent = `
+      #optionsWrap button.correctAnswer{
+        border-color: rgba(124,255,78,0.85) !important;
+        background: rgba(124,255,78,0.14) !important;
+      }
+      #optionsWrap button.wrongAnswer{
+        border-color: rgba(255,120,120,0.85) !important;
+        background: rgba(255,120,120,0.12) !important;
+      }
+      #optionsWrap button.placeholderOption{
+        opacity: 0.45 !important;
+        cursor: not-allowed !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  ensureFeedbackStyles();
+
+  // ✅ NEW: message helper with explicit type
+  function setMsg(el, text, type = "none") {
     if (!el) return;
     el.textContent = text || "";
-    el.style.color = ok ? "rgba(124,255,78,0.95)" : "rgba(255,120,120,0.95)";
-    if (!text) el.style.color = "";
+    if (!text) {
+      el.style.color = "";
+      return;
+    }
+    if (type === "ok") el.style.color = "rgba(124,255,78,0.95)";
+    else if (type === "bad") el.style.color = "rgba(255,120,120,0.95)";
+    else el.style.color = "rgba(220,220,220,0.9)";
   }
 
   function show(el) {
@@ -58,38 +82,66 @@
       .replaceAll("'", "&#039;");
   }
 
-  // ===== SUPABASE INIT =====
+  // ✅ shuffle helper (Fisher-Yates)
+  function shuffleArray(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  // ✅ ensures exactly 4 displayed options (pads missing)
+  function buildDisplayOptions(realOptions) {
+    const opts = Array.isArray(realOptions) ? realOptions.slice() : [];
+
+    // If some options are blank strings, they still render but look empty.
+    // We keep them but label them "(blank)" so you can spot the bad CSV quickly.
+    for (const o of opts) {
+      if (o && (o.option_text === null || o.option_text === undefined || String(o.option_text).trim() === "")) {
+        o.option_text = "(blank option text)";
+      }
+    }
+
+    // Pad up to 4 placeholders if DB returned less than 4
+    while (opts.length < 4) {
+      opts.push({
+        __placeholder: true,
+        id: null,
+        option_text: "Missing option (fix CSV/import)",
+        is_correct: false,
+        option_order: 999,
+      });
+    }
+
+    // If DB returned more than 4, keep all (or uncomment next line to hard-cap)
+    // return opts.slice(0, 4);
+    return opts;
+  }
+
   if (!window.supabase?.createClient) {
-    setMsg(setupMsg, "❌ Supabase CDN not loaded.");
+    setMsg(setupMsg, "❌ Supabase CDN not loaded.", "bad");
     return;
   }
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // ===== QUIZ STATE =====
   let questions = [];
   let index = 0;
 
-  // answers[qid] = optionId | null (skipped) | undefined (unanswered)
   const answers = Object.create(null);
-
-  // correctness[qid] = true|false|null (null = skipped/unanswered)
   const correctness = Object.create(null);
-
-  // lock after selecting answer so they can’t change it unless they go Back
   const locked = Object.create(null);
 
   function totalCount() {
     return questions.length;
   }
-
   function attemptedCount() {
     return questions.filter((q) => typeof answers[q.id] === "number").length;
   }
-
   function skippedCount() {
     return questions.filter((q) => answers[q.id] === null).length;
   }
-
   function unansweredCount() {
     return questions.filter((q) => answers[q.id] === undefined).length;
   }
@@ -99,91 +151,125 @@
     for (const q of questions) if (correctness[q.id] === true) r++;
     return r;
   }
-
   function wrongCount() {
     return attemptedCount() - rightCount();
   }
-
   function score() {
     return rightCount();
   }
 
   function updateTopBar() {
     const total = totalCount();
-    if (progressText) progressText.textContent = `Question ${Math.min(index + 1, total)} / ${total}`;
-    if (scoreText) scoreText.textContent = `Score: ${score()}`;
+    progressText.textContent = `Question ${Math.min(index + 1, total)} / ${total}`;
+    scoreText.textContent = `Score: ${score()}`;
   }
 
   function setNavButtons() {
-    if (backBtn) backBtn.disabled = index === 0;
+    backBtn.disabled = index === 0;
 
     const q = questions[index];
     const selectedAnswer = q ? answers[q.id] : undefined;
-
-    // Next/Finish only enabled if user selected an answer (NOT skip)
     const canNext = selectedAnswer !== undefined && selectedAnswer !== null;
 
     const last = index === totalCount() - 1;
     if (last) {
-      if (nextBtn) hide(nextBtn);
-      if (finishBtn) {
-        show(finishBtn);
-        finishBtn.disabled = !canNext;
-      }
+      hide(nextBtn);
+      show(finishBtn);
+      finishBtn.disabled = !canNext;
     } else {
-      if (nextBtn) {
-        show(nextBtn);
-        nextBtn.disabled = !canNext;
-      }
-      if (finishBtn) hide(finishBtn);
+      show(nextBtn);
+      hide(finishBtn);
+      nextBtn.disabled = !canNext;
     }
+  }
+
+  function correctOptionFor(q) {
+    return (q.options || []).find((o) => !!o.is_correct) || null;
+  }
+
+  function applyVisualFeedback(q) {
+    if (!q || !optionsWrap) return;
+    const selected = answers[q.id];
+    const correctOpt = correctOptionFor(q);
+
+    const btns = optionsWrap.querySelectorAll("button[data-opt-id]");
+    btns.forEach((b) => {
+      b.classList.remove("correctAnswer", "wrongAnswer");
+      const optId = Number(b.getAttribute("data-opt-id"));
+      if (!Number.isFinite(optId)) return;
+
+      if (correctOpt && optId === correctOpt.id) b.classList.add("correctAnswer");
+      if (
+        selected !== undefined &&
+        selected !== null &&
+        correctOpt &&
+        selected !== correctOpt.id &&
+        optId === selected
+      ) {
+        b.classList.add("wrongAnswer");
+      }
+    });
   }
 
   function renderQuestion() {
     if (!questions.length) return;
 
     const q = questions[index];
-    if (questionTitle) questionTitle.textContent = q.question_text || "—";
+    questionTitle.textContent = q.question_text || "—";
 
-    // enforce 2 columns on quiz page options (your CSS .grid is 3 columns by default)
     if (optionsWrap) {
       optionsWrap.style.display = "grid";
       optionsWrap.style.gridTemplateColumns = "1fr 1fr";
       optionsWrap.style.gap = "10px";
+      optionsWrap.style.marginTop = "10px";
     }
 
-    const selected = answers[q.id]; // optionId | null | undefined
-    const opts = (q.options || []).slice().sort((a, b) => (a.option_order ?? 0) - (b.option_order ?? 0));
+    const selected = answers[q.id];
 
-    if (optionsWrap) {
-      optionsWrap.innerHTML = opts
-        .map((opt) => {
-          const isSelected = selected === opt.id;
-
-          // Use your button system, but make options feel like "choice cards"
-          const cls = isSelected ? "choice correct" : "choice";
-          const disabled = locked[q.id] ? "disabled" : "";
-
-          return `
-            <button
-              type="button"
-              class="${cls}"
-              data-opt-id="${opt.id}"
-              ${disabled}
-              aria-pressed="${isSelected ? "true" : "false"}"
-            >
-              ${escapeHtml(opt.option_text)}
-            </button>
-          `;
-        })
-        .join("");
+    // ✅ shuffle ONCE per question, but only for real options
+    if (!q._shuffledOptions) {
+      const real = (q.options || []).slice();
+      q._shuffledOptions = shuffleArray(real);
     }
 
-    // feedback
+    const displayOpts = buildDisplayOptions(q._shuffledOptions);
+
+    optionsWrap.innerHTML = displayOpts
+      .map((opt) => {
+        const isPlaceholder = !!opt.__placeholder;
+        const optId = isPlaceholder ? "" : String(opt.id);
+        const isSelected = !isPlaceholder && selected === opt.id;
+
+        const clsBase = isSelected ? "btn" : "btn secondary";
+        const cls = isPlaceholder ? `${clsBase} placeholderOption` : clsBase;
+
+        const disabled = locked[q.id] || isPlaceholder ? "disabled" : "";
+
+        return `
+          <button
+            type="button"
+            class="${cls}"
+            data-opt-id="${optId}"
+            ${disabled}
+            style="width:100%; text-align:left; padding:14px; border-radius:14px;"
+          >
+            ${escapeHtml(opt.option_text)}
+          </button>
+        `;
+      })
+      .join("");
+
     if (selected !== undefined && selected !== null) {
-      setMsg(quizMsg, correctness[q.id] ? "✅ Correct!" : "❌ Wrong!", correctness[q.id] === true);
+      const correctOpt = correctOptionFor(q);
+      if (correctness[q.id] === true) {
+        setMsg(quizMsg, "✅ Correct!", "ok"); // ✅ ALWAYS GREEN
+      } else {
+        const correctText = correctOpt ? correctOpt.option_text : "—";
+        setMsg(quizMsg, `❌ Wrong! Correct answer: ${correctText}`, "bad");
+      }
+      applyVisualFeedback(q);
     } else if (selected === null) {
-      setMsg(quizMsg, "Skipped.", false);
+      setMsg(quizMsg, "Skipped.", "bad");
     } else {
       setMsg(quizMsg, "");
     }
@@ -204,7 +290,13 @@
 
     locked[q.id] = true;
 
-    setMsg(quizMsg, correctness[q.id] ? "✅ Correct!" : "❌ Wrong!", correctness[q.id] === true);
+    const correctOpt = correctOptionFor(q);
+    if (correctness[q.id] === true) {
+      setMsg(quizMsg, "✅ Correct!", "ok");
+    } else {
+      const correctText = correctOpt ? correctOpt.option_text : "—";
+      setMsg(quizMsg, `❌ Wrong! Correct answer: ${correctText}`, "bad");
+    }
 
     renderQuestion();
   }
@@ -249,12 +341,11 @@
     const skipped = skippedCount();
     const unanswered = unansweredCount();
 
-    if (finalScore) finalScore.textContent = `${right} / ${total}`;
-    if (finalProgress)
-      finalProgress.textContent = `Right: ${right} • Wrong: ${wrong} • Skipped: ${skipped} • Unanswered: ${unanswered} • Total: ${total}`;
+    finalScore.textContent = `${right} / ${total}`;
+    finalProgress.textContent = `Right: ${right} • Wrong: ${wrong} • Skipped: ${skipped} • Unanswered: ${unanswered} • Total: ${total}`;
 
-    if (reason === "ended") setMsg(resultMsg, "Quiz ended early.", false);
-    else setMsg(resultMsg, "Quiz finished ✅", true);
+    if (reason === "ended") setMsg(resultMsg, "Quiz ended early.", "bad");
+    else setMsg(resultMsg, "Quiz finished ✅", "ok");
   }
 
   function endEarly() {
@@ -278,12 +369,11 @@
     setMsg(resultMsg, "");
 
     if (optionsWrap) optionsWrap.innerHTML = "";
-    if (questionTitle) questionTitle.textContent = "—";
-    if (progressText) progressText.textContent = "Question — / —";
-    if (scoreText) scoreText.textContent = "Score: 0";
+    questionTitle.textContent = "—";
+    progressText.textContent = "Question — / —";
+    scoreText.textContent = "Score: 0";
   }
 
-  // ===== LOAD TOPICS =====
   async function loadTopics() {
     if (!topicSelect) return;
 
@@ -293,7 +383,7 @@
 
     if (error) {
       topicSelect.innerHTML = `<option value="">Failed to load topics</option>`;
-      setMsg(setupMsg, "Failed to load topics: " + error.message);
+      setMsg(setupMsg, "Failed to load topics: " + error.message, "bad");
       return;
     }
 
@@ -305,7 +395,6 @@
     topicSelect.innerHTML = data.map((t) => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join("");
   }
 
-  // ===== LOAD QUESTIONS + OPTIONS =====
   async function loadQuizForTopic(topicId) {
     const { data: qData, error: qErr } = await sb
       .from("questions")
@@ -321,8 +410,7 @@
     const { data: oData, error: oErr } = await sb
       .from("options")
       .select("id, question_id, option_text, is_correct, option_order")
-      .in("question_id", qIds)
-      .order("option_order", { ascending: true });
+      .in("question_id", qIds);
 
     if (oErr) throw new Error(oErr.message);
 
@@ -334,15 +422,14 @@
 
     return qData.map((q) => ({
       ...q,
-      options: optionsByQ.get(q.id) || [],
+      options: (optionsByQ.get(q.id) || []).slice().sort((a, b) => (a.option_order ?? 0) - (b.option_order ?? 0)),
     }));
   }
 
-  // ===== START =====
   async function start() {
     setMsg(setupMsg, "");
     const topicId = topicSelect?.value;
-    if (!topicId) return setMsg(setupMsg, "Pick a topic first.");
+    if (!topicId) return setMsg(setupMsg, "Pick a topic first.", "bad");
 
     startBtn.disabled = true;
     startBtn.textContent = "Starting...";
@@ -350,9 +437,14 @@
     try {
       const loaded = await loadQuizForTopic(topicId);
       if (!loaded.length) {
-        setMsg(setupMsg, "No questions in this topic yet.");
+        setMsg(setupMsg, "No questions in this topic yet.", "bad");
         return;
       }
+
+      // reset shuffle state
+      loaded.forEach((q) => {
+        delete q._shuffledOptions;
+      });
 
       questions = loaded;
       index = 0;
@@ -364,14 +456,13 @@
       renderQuestion();
       setNavButtons();
     } catch (e) {
-      setMsg(setupMsg, "Failed to start quiz: " + (e.message || "Unknown error"));
+      setMsg(setupMsg, "Failed to start quiz: " + (e.message || "Unknown error"), "bad");
     } finally {
       startBtn.disabled = false;
       startBtn.textContent = "Start";
     }
   }
 
-  // ===== EVENTS =====
   startBtn?.addEventListener("click", start);
 
   optionsWrap?.addEventListener("click", (e) => {
@@ -379,8 +470,9 @@
     if (!btn) return;
     if (btn.disabled) return;
 
-    const optId = Number(btn.getAttribute("data-opt-id"));
-    if (!Number.isFinite(optId)) return;
+    const raw = btn.getAttribute("data-opt-id");
+    const optId = Number(raw);
+    if (!Number.isFinite(optId)) return; // ignore placeholders
 
     applyAnswer(optId);
   });
@@ -401,7 +493,6 @@
     await loadTopics();
   });
 
-  // ===== INIT =====
   resetAll();
   loadTopics();
 })();
