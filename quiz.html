@@ -4,7 +4,59 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Quizzas • Quiz</title>
+
   <link rel="stylesheet" href="/assets/css/styles.css" />
+
+  <style>
+    .setupGrid{
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+      margin-top: 10px;
+    }
+    @media (min-width: 780px){
+      .setupGrid{ grid-template-columns: 1fr 1fr; }
+    }
+    .field label{
+      display:block;
+      font-size: 0.9rem;
+      color: rgba(245,250,245,0.78);
+      margin-bottom: 6px;
+    }
+    .field .hint{
+      margin-top: 6px;
+      font-size: 0.85rem;
+      color: rgba(245,250,245,0.62);
+    }
+    .inputLike{
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(124,255,78,0.25);
+      background: rgba(10,16,12,0.65);
+      color: rgba(245,250,245,0.92);
+      outline: none;
+    }
+    .inputLike:focus{
+      border-color: rgba(124,255,78,0.55);
+      box-shadow: 0 0 0 3px rgba(124,255,78,0.08);
+    }
+    .setupActions{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      align-items: center;
+    }
+    .pill{
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      border: 1px solid rgba(124,255,78,0.22);
+      background: rgba(124,255,78,0.06);
+      color: rgba(245,250,245,0.85);
+    }
+  </style>
 </head>
 
 <body class="page-quiz">
@@ -26,20 +78,52 @@
   </header>
 
   <main class="container">
-    <!-- SETUP CARD -->
     <section id="setupCard" class="card">
       <h2 style="margin:0 0 10px 0;">Start a quiz</h2>
-      <p class="muted" style="margin:0 0 14px 0;">Pick a topic, then press Start.</p>
+      <p class="muted" style="margin:0 0 10px 0;">
+        Pick a topic, choose a mode, and how many questions you want.
+      </p>
 
-      <div class="row" style="grid-template-columns: 1fr 220px;">
-        <select id="topicSelect"></select>
-        <button id="startBtn" class="btn" type="button">Start</button>
+      <div class="setupGrid">
+        <div class="field">
+          <label for="topicSelect">Topic</label>
+          <select id="topicSelect" class="inputLike">
+            <option value="">Loading topics…</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="modeSelect">Mode</label>
+          <select id="modeSelect" class="inputLike">
+            <option value="full">Full topic</option>
+            <option value="wrong">Only wrong (last attempt)</option>
+            <option value="unanswered">Only unanswered (last attempt)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="countInput">Number of questions</label>
+          <input id="countInput" class="inputLike" type="number" min="1" step="1" value="10" />
+          <div class="hint">
+            Max: <span id="maxCountLabel">—</span>
+            <span class="pill" id="availableLabel" style="margin-left:8px;">Available: —</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Quick actions</label>
+          <button id="clearProgressBtn" class="btn secondary" type="button">
+            Clear saved progress (this topic)
+          </button>
+        </div>
       </div>
 
-      <div id="setupMsg" class="msg" style="margin-top:10px;"></div>
+      <div class="setupActions">
+        <button id="startBtn" class="btn" type="button">Start</button>
+        <div id="setupMsg" class="msg"></div>
+      </div>
     </section>
 
-    <!-- QUIZ CARD -->
     <section id="quizCard" class="card" style="display:none;">
       <div class="row" style="grid-template-columns: 1fr auto; align-items:center;">
         <div class="muted" id="progressText">Question — / —</div>
@@ -61,7 +145,6 @@
       </div>
     </section>
 
-    <!-- RESULT CARD -->
     <section id="resultCard" class="card" style="display:none;">
       <h2 style="margin:0 0 10px 0;">Finished 🎉</h2>
       <div class="row" style="grid-template-columns: 1fr 1fr; gap:12px;">
@@ -94,6 +177,6 @@
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/quiz.js?v=1" defer></script>
+  <script src="/js/quiz.js" defer></script>
 </body>
 </html>

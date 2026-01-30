@@ -11,8 +11,15 @@
   const resultCard = document.getElementById("resultCard");
 
   const topicSelect = document.getElementById("topicSelect");
+  const modeSelect = document.getElementById("modeSelect");
+  const clearProgressBtn = document.getElementById("clearProgressBtn");
+
   const startBtn = document.getElementById("startBtn");
   const setupMsg = document.getElementById("setupMsg");
+
+  const countInput = document.getElementById("countInput");
+  const maxCountLabel = document.getElementById("maxCountLabel");
+  const availableLabel = document.getElementById("availableLabel");
 
   const progressText = document.getElementById("progressText");
   const scoreText = document.getElementById("scoreText");
@@ -56,8 +63,12 @@
     if (!text) el.style.color = "";
   }
 
-  function show(el) { if (el) el.style.display = ""; }
-  function hide(el) { if (el) el.style.display = "none"; }
+  function show(el) {
+    if (el) el.style.display = "";
+  }
+  function hide(el) {
+    if (el) el.style.display = "none";
+  }
 
   function escapeHtml(s) {
     return String(s ?? "")
@@ -77,6 +88,89 @@
     return a;
   }
 
+  function clampInt(n, min, max) {
+    const x = Number(n);
+    if (!Number.isFinite(x)) return min;
+    return Math.max(min, Math.min(max, Math.floor(x)));
+  }
+
+  function getChosenCount(maxAvailableForMode) {
+    if (!countInput) return maxAvailableForMode;
+
+    const parsed = Number(countInput.value);
+    if (!Number.isFinite(parsed)) return 0;
+
+    return clampInt(parsed, 0, maxAvailableForMode);
+  }
+
+  function updateCountUI(totalMaxForTopic, availableForMode) {
+    if (!countInput) return;
+
+    const totalSafe = Math.max(0, Number(totalMaxForTopic) || 0);
+    const availableSafe = Math.max(0, Number(availableForMode) || 0);
+
+    if (maxCountLabel) maxCountLabel.textContent = String(totalSafe);
+    if (availableLabel) availableLabel.textContent = `Available: ${availableSafe}`;
+
+    countInput.min = "0";
+    countInput.max = String(availableSafe);
+
+    const raw = Number(countInput.value);
+    if (Number.isFinite(raw) && raw > availableSafe) countInput.value = String(availableSafe);
+  }
+
+  function attemptKey(topicId) {
+    return `quizzas:lastAttempt:topic:${Number(topicId)}`;
+  }
+
+  function loadLastAttempt(topicId) {
+    try {
+      const raw = localStorage.getItem(attemptKey(topicId));
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function saveLastAttempt(topicId) {
+    try {
+      const payload = {
+        topicId: Number(topicId),
+        savedAt: Date.now(),
+        answers: {},
+      };
+
+      for (const q of questions) {
+        const a = answers[q.id];
+        payload.answers[q.id] = {
+          answerId: typeof a === "number" ? a : null,
+          correct: correctness[q.id] === true,
+          skipped: a === null,
+        };
+      }
+
+      localStorage.setItem(attemptKey(topicId), JSON.stringify(payload));
+    } catch {}
+  }
+
+  function clearLastAttempt(topicId) {
+    try {
+      localStorage.removeItem(attemptKey(topicId));
+    } catch {}
+  }
+
+  function filterQuestionsByMode(allQuestions, topicId, mode) {
+    if (mode === "full") return allQuestions;
+
+    const last = loadLastAttempt(topicId);
+    if (!last || !last.answers) return [];
+
+    if (mode === "wrong") return allQuestions.filter((q) => last.answers[q.id]?.correct === false);
+    if (mode === "unanswered") return allQuestions.filter((q) => last.answers[q.id]?.answerId == null);
+
+    return allQuestions;
+  }
+
   if (!window.supabase?.createClient) {
     setMsg(setupMsg, "❌ Supabase CDN not loaded.");
     return;
@@ -90,18 +184,30 @@
   const correctness = Object.create(null);
   const locked = Object.create(null);
 
-  function totalCount() { return questions.length; }
-  function attemptedCount() { return questions.filter((q) => typeof answers[q.id] === "number").length; }
-  function skippedCount() { return questions.filter((q) => answers[q.id] === null).length; }
-  function unansweredCount() { return questions.filter((q) => answers[q.id] === undefined).length; }
+  function totalCount() {
+    return questions.length;
+  }
+  function attemptedCount() {
+    return questions.filter((q) => typeof answers[q.id] === "number").length;
+  }
+  function skippedCount() {
+    return questions.filter((q) => answers[q.id] === null).length;
+  }
+  function unansweredCount() {
+    return questions.filter((q) => answers[q.id] === undefined).length;
+  }
 
   function rightCount() {
     let r = 0;
     for (const q of questions) if (correctness[q.id] === true) r++;
     return r;
   }
-  function wrongCount() { return attemptedCount() - rightCount(); }
-  function score() { return rightCount(); }
+  function wrongCount() {
+    return attemptedCount() - rightCount();
+  }
+  function score() {
+    return rightCount();
+  }
 
   function updateTopBar() {
     const total = totalCount();
@@ -134,19 +240,22 @@
 
   function applyVisualFeedback(q) {
     if (!q || !optionsWrap) return;
+
     const selected = answers[q.id];
     const correctOpt = correctOptionFor(q);
 
     const btns = optionsWrap.querySelectorAll("button[data-opt-id]");
     btns.forEach((b) => {
       b.classList.remove("correctAnswer", "wrongAnswer");
+
       const optId = Number(b.getAttribute("data-opt-id"));
       if (!Number.isFinite(optId)) return;
 
-      if (correctOpt && optId === correctOpt.id) b.classList.add("correctAnswer");
-      if (selected !== undefined && selected !== null && correctOpt && selected !== correctOpt.id && optId === selected) {
-        b.classList.add("wrongAnswer");
-      }
+      const hasAnswer = selected !== undefined && selected !== null;
+      const isWrong = hasAnswer && correctOpt && selected !== correctOpt.id;
+
+      if (isWrong && correctOpt && optId === correctOpt.id) b.classList.add("correctAnswer");
+      if (isWrong && optId === selected) b.classList.add("wrongAnswer");
     });
   }
 
@@ -165,10 +274,7 @@
 
     const selected = answers[q.id];
 
-    // shuffle options ONCE per question (per attempt)
-    if (!q._shuffledOptions) {
-      q._shuffledOptions = shuffleArray(q.options || []);
-    }
+    if (!q._shuffledOptions) q._shuffledOptions = shuffleArray(q.options || []);
     const opts = q._shuffledOptions;
 
     optionsWrap.innerHTML = opts
@@ -182,7 +288,6 @@
             type="button"
             class="${cls}"
             data-opt-id="${opt.id}"
-            data-is-correct="${opt.is_correct ? "true" : "false"}"
             ${disabled}
             style="width:100%; text-align:left; padding:14px; border-radius:14px;"
           >
@@ -264,6 +369,9 @@
   }
 
   function finish(reason = "completed") {
+    const topicId = Number(topicSelect?.value);
+    if (topicId) saveLastAttempt(topicId);
+
     hide(quizCard);
     hide(setupCard);
     show(resultCard);
@@ -307,6 +415,44 @@
     scoreText.textContent = "Score: 0";
   }
 
+  async function fetchTopicQuestionIds(topicId) {
+    const { data, error } = await sb.from("questions").select("id").eq("topic_id", Number(topicId));
+    if (error) throw new Error(error.message);
+    return Array.isArray(data) ? data.map((x) => x.id) : [];
+  }
+
+  async function updateAvailabilityFor(topicId) {
+    const mode = modeSelect?.value || "full";
+
+    try {
+      const allIds = await fetchTopicQuestionIds(topicId);
+      const totalMaxForTopic = allIds.length;
+
+      if (mode === "full") {
+        updateCountUI(totalMaxForTopic, totalMaxForTopic);
+        return;
+      }
+
+      const last = loadLastAttempt(topicId);
+      if (!last || !last.answers) {
+        updateCountUI(totalMaxForTopic, 0);
+        return;
+      }
+
+      let availableForMode = 0;
+
+      if (mode === "wrong") {
+        for (const id of allIds) if (last.answers[id]?.correct === false) availableForMode++;
+      } else if (mode === "unanswered") {
+        for (const id of allIds) if (last.answers[id]?.answerId == null) availableForMode++;
+      }
+
+      updateCountUI(totalMaxForTopic, availableForMode);
+    } catch {
+      updateCountUI(0, 0);
+    }
+  }
+
   async function loadTopics() {
     if (!topicSelect) return;
 
@@ -317,18 +463,26 @@
     if (error) {
       topicSelect.innerHTML = `<option value="">Failed to load topics</option>`;
       setMsg(setupMsg, "Failed to load topics: " + error.message);
+      if (maxCountLabel) maxCountLabel.textContent = "—";
+      if (availableLabel) availableLabel.textContent = "Available: —";
       return;
     }
 
     if (!data || data.length === 0) {
       topicSelect.innerHTML = `<option value="">No topics yet</option>`;
+      if (maxCountLabel) maxCountLabel.textContent = "—";
+      if (availableLabel) availableLabel.textContent = "Available: —";
       return;
     }
 
     topicSelect.innerHTML = data.map((t) => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join("");
+
+    topicSelect.selectedIndex = 0;
+
+    const firstTopicId = topicSelect.value;
+    if (firstTopicId) await updateAvailabilityFor(firstTopicId);
   }
 
-  // ✅ FIX: paginate options so you don't get stuck at ~1000 rows
   async function fetchAllOptionsForQuestions(qIds) {
     const all = [];
     const pageSize = 1000;
@@ -363,8 +517,6 @@
     if (!qData || qData.length === 0) return [];
 
     const qIds = qData.map((q) => q.id);
-
-    // ✅ get ALL options (not just first ~1000)
     const oData = await fetchAllOptionsForQuestions(qIds);
 
     const optionsByQ = new Map();
@@ -394,12 +546,30 @@
         return;
       }
 
-      // ✅ Randomise question order per attempt
-      questions = shuffleArray(loaded);
-      index = 0;
+      const mode = modeSelect?.value || "full";
+      const filtered = filterQuestionsByMode(loaded, topicId, mode);
 
-      // (optional) clear any old shuffled options from previous run
+      if (!filtered.length) {
+        if (mode === "wrong") setMsg(setupMsg, "No wrong questions found from your last attempt for this topic.");
+        else if (mode === "unanswered")
+          setMsg(setupMsg, "No unanswered questions found from your last attempt for this topic.");
+        else setMsg(setupMsg, "No questions in this topic yet.");
+        return;
+      }
+
+      const shuffled = shuffleArray(filtered);
+
+      const chosenCount = getChosenCount(shuffled.length);
+      if (chosenCount === 0) {
+        setMsg(setupMsg, "❌ You can’t start a quiz with 0 questions.");
+        return;
+      }
+
+      questions = shuffled.slice(0, chosenCount);
+
       for (const q of questions) delete q._shuffledOptions;
+
+      index = 0;
 
       hide(setupCard);
       show(quizCard);
@@ -442,6 +612,39 @@
   restartBtn?.addEventListener("click", async () => {
     resetAll();
     await loadTopics();
+  });
+
+  clearProgressBtn?.addEventListener("click", async () => {
+    const topicId = topicSelect?.value;
+    if (!topicId) return setMsg(setupMsg, "Pick a topic first.");
+    clearLastAttempt(topicId);
+    setMsg(setupMsg, "Saved progress cleared for this topic.", true);
+    await updateAvailabilityFor(topicId);
+  });
+
+  topicSelect?.addEventListener("change", async () => {
+    setMsg(setupMsg, "");
+    const topicId = topicSelect.value;
+    if (!topicId) {
+      if (maxCountLabel) maxCountLabel.textContent = "—";
+      if (availableLabel) availableLabel.textContent = "Available: —";
+      return;
+    }
+    await updateAvailabilityFor(topicId);
+  });
+
+  modeSelect?.addEventListener("change", async () => {
+    setMsg(setupMsg, "");
+    const topicId = topicSelect.value;
+    if (!topicId) return;
+    await updateAvailabilityFor(topicId);
+  });
+
+  countInput?.addEventListener("input", () => {
+    const maxAttr = Number(countInput.max);
+    const maxAvailableForMode = Number.isFinite(maxAttr) && maxAttr >= 0 ? maxAttr : 0;
+    const raw = Number(countInput.value);
+    if (Number.isFinite(raw) && raw > maxAvailableForMode) countInput.value = String(maxAvailableForMode);
   });
 
   resetAll();
